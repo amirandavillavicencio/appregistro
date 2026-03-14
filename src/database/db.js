@@ -58,7 +58,40 @@ function getDb() {
   return dbInstance;
 }
 
+function normalizeParams(params = []) {
+  if (Array.isArray(params)) {
+    return params;
+  }
+  return [params];
+}
+
+function all(sql, params = []) {
+  const db = getDb();
+  const stmt = db.prepare(sql);
+  return stmt.all(...normalizeParams(params));
+}
+
+function get(sql, params = []) {
+  const db = getDb();
+  const stmt = db.prepare(sql);
+  return stmt.get(...normalizeParams(params));
+}
+
+function run(sql, params = []) {
+  const db = getDb();
+  const stmt = db.prepare(sql);
+  const result = stmt.run(...normalizeParams(params));
+
+  return {
+    id: result.lastInsertRowid,
+    changes: result.changes
+  };
+}
+
 module.exports = {
   initDb,
-  getDb
+  getDb,
+  all,
+  get,
+  run
 };

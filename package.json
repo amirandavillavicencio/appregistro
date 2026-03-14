@@ -17,14 +17,18 @@
   },
   "build": {
     "appId": "cl.ciac.registro",
+    "productName": "CIAC Registro",
     "directories": {
-      "output": "dist-electron"
+      "output": "build/windows"
     },
     "win": {
       "target": [
         "portable",
         "zip"
       ]
+    },
+    "portable": {
+      "artifactName": "${name}-${version}-portable.${ext}"
     }
   }
 }

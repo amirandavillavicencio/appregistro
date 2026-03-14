@@ -21,6 +21,90 @@
   const tematicaInput = document.getElementById('tematica');
   const observacionesInput = document.getElementById('observaciones');
 
+  const CARRERAS_SAN_JOAQUIN = [
+    'Plan Común de Ingenierías y Licenciaturas',
+    'Ingeniería Civil',
+    'Ingeniería Civil Eléctrica',
+    'Ingeniería Civil Informática',
+    'Ingeniería Civil Mecánica',
+    'Ingeniería Civil de Minas',
+    'Ingeniería Civil Química',
+    'Ingeniería Civil Matemática',
+    'Ingeniería Civil Telemática',
+    'Ingeniería Civil Física',
+    'Licenciatura en Astrofísica',
+    'Licenciatura en Física',
+    'Ingeniería en Diseño de Productos',
+    'Técnico Universitario en Construcción',
+    'Técnico Universitario en Control de Alimentos',
+    'Técnico Universitario en Control del Medio Ambiente',
+    'Técnico Universitario en Electricidad',
+    'Técnico Universitario en Electrónica',
+    'Técnico Universitario en Energías Renovables',
+    'Técnico Universitario en Mantenimiento Industrial',
+    'Técnico Universitario en Mecánica Automotriz',
+    'Técnico Universitario en Mecánica Industrial',
+    'Técnico Universitario en Informática',
+    'Técnico Universitario en Proyectos de Ingeniería',
+    'Técnico Universitario en Telecomunicaciones y Redes',
+    'Técnico Universitario en Minería y Metalurgia',
+    'Técnico Universitario en Química (mención Química Analítica)',
+    'Técnico Universitario en Matricería para plásticos y metales',
+    'Técnico Universitario en Prevención de Riesgos'
+  ];
+
+  const ACTIVIDADES = [
+    'Estudio Personal',
+    'Consultas',
+    'Psicoeducativo Grupal',
+    'Psicoeducativo Individual'
+  ];
+
+  function setSelectOptions(selectElement, options) {
+    const placeholder = selectElement.querySelector('option[value=""]');
+    selectElement.innerHTML = '';
+
+    if (placeholder) {
+      selectElement.appendChild(placeholder);
+    }
+
+    options.forEach((optionValue) => {
+      const option = document.createElement('option');
+      option.value = optionValue;
+      option.textContent = optionValue;
+      selectElement.appendChild(option);
+    });
+  }
+
+  function buildIngresoYears() {
+    const currentYear = new Date().getFullYear();
+    const years = [];
+
+    for (let year = 2020; year <= currentYear; year += 1) {
+      years.push(String(year));
+    }
+
+    return years;
+  }
+
+  function setSelectValue(selectElement, value) {
+    if (!value) {
+      selectElement.value = '';
+      return;
+    }
+
+    const normalizedValue = String(value);
+    const hasOption = Array.from(selectElement.options).some((option) => option.value === normalizedValue);
+
+    selectElement.value = hasOption ? normalizedValue : '';
+  }
+
+  function initializeFormOptions() {
+    setSelectOptions(carreraInput, CARRERAS_SAN_JOAQUIN);
+    setSelectOptions(anioIngresoInput, buildIngresoYears());
+    setSelectOptions(actividadInput, ACTIVIDADES);
+  }
+
   function nowParts() {
     const now = new Date();
     const date = now.toISOString().slice(0, 10);
@@ -104,9 +188,9 @@
 
     const response = await window.ciacApi.getProfileByRun(runValue);
     if (response.profile) {
-      carreraInput.value = response.profile.carrera || '';
+      setSelectValue(carreraInput, response.profile.carrera);
       jornadaInput.value = response.profile.jornada || '';
-      anioIngresoInput.value = response.profile.anio_ingreso || '';
+      setSelectValue(anioIngresoInput, response.profile.anio_ingreso);
     }
   }
 
@@ -176,5 +260,6 @@
     }
   });
 
+  initializeFormOptions();
   setInterval(updateClock, 1000);
 })();

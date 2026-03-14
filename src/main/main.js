@@ -13,6 +13,66 @@ const {
 } = require('../services/attendanceService');
 const { exportToExcel } = require('../services/exportService');
 
+const CARRERAS_SAN_JOAQUIN = [
+  'Plan Común de Ingenierías y Licenciaturas',
+  'Ingeniería Civil',
+  'Ingeniería Civil Eléctrica',
+  'Ingeniería Civil Informática',
+  'Ingeniería Civil Mecánica',
+  'Ingeniería Civil de Minas',
+  'Ingeniería Civil Química',
+  'Ingeniería Civil Matemática',
+  'Ingeniería Civil Telemática',
+  'Ingeniería Civil Física',
+  'Licenciatura en Astrofísica',
+  'Licenciatura en Física',
+  'Ingeniería en Diseño de Productos',
+  'Técnico Universitario en Construcción',
+  'Técnico Universitario en Control de Alimentos',
+  'Técnico Universitario en Control del Medio Ambiente',
+  'Técnico Universitario en Electricidad',
+  'Técnico Universitario en Electrónica',
+  'Técnico Universitario en Energías Renovables',
+  'Técnico Universitario en Mantenimiento Industrial',
+  'Técnico Universitario en Mecánica Automotriz',
+  'Técnico Universitario en Mecánica Industrial',
+  'Técnico Universitario en Informática',
+  'Técnico Universitario en Proyectos de Ingeniería',
+  'Técnico Universitario en Telecomunicaciones y Redes',
+  'Técnico Universitario en Minería y Metalurgia',
+  'Técnico Universitario en Química (mención Química Analítica)',
+  'Técnico Universitario en Matricería para plásticos y metales',
+  'Técnico Universitario en Prevención de Riesgos'
+];
+
+const ACTIVIDADES_PERMITIDAS = [
+  'Estudio Personal',
+  'Consultas',
+  'Psicoeducativo Grupal',
+  'Psicoeducativo Individual'
+];
+
+function buildAniosIngresoPermitidos() {
+  const currentYear = new Date().getFullYear();
+  const years = [];
+
+  for (let year = 2020; year <= currentYear; year += 1) {
+    years.push(String(year));
+  }
+
+  return years;
+}
+
+function normalizeSelectValue(value, allowedValues) {
+  const normalized = String(value || '');
+  if (!normalized) {
+    return '';
+  }
+
+  return allowedValues.includes(normalized) ? normalized : '';
+}
+
+
 function createWindow() {
   const mainWindow = new BrowserWindow({
     width: 1200,
@@ -33,14 +93,16 @@ ipcMain.handle('attendance:register', async (_event, payload) => {
     return { ok: false, message: validation.message };
   }
 
+  const aniosIngresoPermitidos = buildAniosIngresoPermitidos();
+
   const result = await registerAttendance({
     campus: payload.campus,
     run: validation.run,
     dv: validation.dv,
-    carrera: payload.carrera || '',
+    carrera: normalizeSelectValue(payload.carrera, CARRERAS_SAN_JOAQUIN),
     jornada: payload.jornada || '',
-    anioIngreso: payload.anioIngreso || '',
-    actividad: payload.actividad || '',
+    anioIngreso: normalizeSelectValue(payload.anioIngreso, aniosIngresoPermitidos),
+    actividad: normalizeSelectValue(payload.actividad, ACTIVIDADES_PERMITIDAS),
     tematica: payload.tematica || '',
     observaciones: payload.observaciones || ''
   });

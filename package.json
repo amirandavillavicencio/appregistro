@@ -1,0 +1,14 @@
+{
+  "name": "ciac-registro",
+  "version": "1.0.0",
+  "description": "MVP de registro de participación CIAC en Electron + SQLite",
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {
+    "electron": "^30.0.9",
+    "sqlite3": "^5.1.7",
+    "xlsx": "^0.18.5"
+  }
+}

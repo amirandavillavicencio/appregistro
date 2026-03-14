@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CIAC Registro</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <section id="screen-campus" class="screen active">
+        <h1>Registro de Participación CIAC</h1>
+        <p class="subtitle">Selecciona tu campus</p>
+        <div class="button-row">
+          <button class="primary large" data-campus="Campus Vitacura">Campus Vitacura</button>
+          <button class="primary large" data-campus="Campus San Joaquín">Campus San Joaquín</button>
+        </div>
+      </section>
+
+      <section id="screen-main" class="screen">
+        <header class="status-bar">
+          <div><strong>Campus:</strong> <span id="campus-label"></span></div>
+          <div><strong>Fecha:</strong> <span id="fecha-label"></span></div>
+          <div><strong>Hora:</strong> <span id="hora-label"></span></div>
+        </header>
+
+        <form id="registro-form" class="form-grid">
+          <label>RUN<input id="run" type="text" autocomplete="off" required /></label>
+          <label>DV<input id="dv" type="text" maxlength="1" autocomplete="off" required /></label>
+          <label>Carrera<input id="carrera" type="text" /></label>
+          <label>Jornada<input id="jornada" type="text" /></label>
+          <label>Año ingreso<input id="anioIngreso" type="text" /></label>
+          <label>Actividad<input id="actividad" type="text" /></label>
+          <label>Temática<input id="tematica" type="text" /></label>
+          <label class="span-2">Observaciones<textarea id="observaciones" rows="2"></textarea></label>
+          <div class="button-row span-2">
+            <button type="submit" class="primary">Registrar</button>
+            <button type="button" id="btn-limpiar" class="secondary">Limpiar</button>
+            <button type="button" id="btn-exportar" class="secondary">Exportar Excel</button>
+          </div>
+        </form>
+
+        <p id="feedback" class="feedback"></p>
+
+        <section>
+          <h2>Últimos registros del día</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Hora entrada</th>
+                <th>Hora salida</th>
+                <th>RUN</th>
+                <th>Carrera</th>
+                <th>Actividad</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="records-body"></tbody>
+          </table>
+        </section>
+      </section>
+    </main>
+
+    <script src="renderer.js"></script>
+  </body>
+</html>

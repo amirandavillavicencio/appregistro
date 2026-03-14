@@ -4,11 +4,27 @@
   "description": "MVP de registro de participación CIAC en Electron + SQLite",
   "main": "src/main/main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "dist": "electron-builder --win portable zip"
   },
   "dependencies": {
     "electron": "^30.0.9",
     "sqlite3": "^5.1.7",
     "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "cl.ciac.registro",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "win": {
+      "target": [
+        "portable",
+        "zip"
+      ]
+    }
   }
 }

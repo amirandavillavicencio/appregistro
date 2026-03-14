@@ -28,10 +28,25 @@
         <form id="registro-form" class="form-grid">
           <label>RUN<input id="run" type="text" autocomplete="off" required /></label>
           <label>DV<input id="dv" type="text" maxlength="1" autocomplete="off" required /></label>
-          <label>Carrera<input id="carrera" type="text" /></label>
+          <label>
+            Carrera
+            <select id="carrera">
+              <option value="">Seleccionar carrera</option>
+            </select>
+          </label>
           <label>Jornada<input id="jornada" type="text" /></label>
-          <label>Año ingreso<input id="anioIngreso" type="text" /></label>
-          <label>Actividad<input id="actividad" type="text" /></label>
+          <label>
+            Año ingreso
+            <select id="anioIngreso">
+              <option value="">Seleccionar año</option>
+            </select>
+          </label>
+          <label>
+            Actividad
+            <select id="actividad">
+              <option value="">Seleccionar actividad</option>
+            </select>
+          </label>
           <label>Temática<input id="tematica" type="text" /></label>
           <label class="span-2">Observaciones<textarea id="observaciones" rows="2"></textarea></label>
           <div class="button-row span-2">

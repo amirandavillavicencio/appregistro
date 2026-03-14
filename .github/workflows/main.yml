@@ -1,0 +1,41 @@
+name: Build CIAC Registro for Windows
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Package app directory
+        run: |
+          if (!(Test-Path dist)) {
+            New-Item -ItemType Directory -Path dist | Out-Null
+          }
+          Copy-Item -Recurse -Force src dist/src
+          Copy-Item -Force package.json dist/package.json
+          if (Test-Path README.md) { Copy-Item -Force README.md dist/README.md }
+          if (Test-Path AGENTS.md) { Copy-Item -Force AGENTS.md dist/AGENTS.md }
+          if (Test-Path SPEC.md) { Copy-Item -Force SPEC.md dist/SPEC.md }
+
+      - name: Upload project artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ciac-registro-project
+          path: dist

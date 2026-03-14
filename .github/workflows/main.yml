@@ -18,23 +18,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
 
       - name: Install dependencies
         run: npm install
 
-      - name: Package app directory
+      - name: Package project
         run: |
-          if (!(Test-Path dist)) {
-            New-Item -ItemType Directory -Path dist | Out-Null
-          }
-          Copy-Item -Recurse -Force src dist/src
-          Copy-Item -Force package.json dist/package.json
-          if (Test-Path README.md) { Copy-Item -Force README.md dist/README.md }
-          if (Test-Path AGENTS.md) { Copy-Item -Force AGENTS.md dist/AGENTS.md }
-          if (Test-Path SPEC.md) { Copy-Item -Force SPEC.md dist/SPEC.md }
+          mkdir dist
+          xcopy src dist\src /E /I
+          copy package.json dist\package.json
 
-      - name: Upload project artifact
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ciac-registro-project

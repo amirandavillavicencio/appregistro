@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const sqlite3 = require('sqlite3').verbose();
+const Database = require('better-sqlite3');
 
 const dataDir = path.join(__dirname, '..', '..', 'data');
 const dbPath = path.join(dataDir, 'ciac_registro.db');
@@ -9,41 +9,27 @@ if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }
 
-const db = new sqlite3.Database(dbPath);
+const db = new Database(dbPath);
 
 function run(sql, params = []) {
-  return new Promise((resolve, reject) => {
-    db.run(sql, params, function onRun(err) {
-      if (err) {
-        reject(err);
-        return;
-      }
-      resolve({ id: this.lastID, changes: this.changes });
-    });
+  return Promise.resolve().then(() => {
+    const stmt = db.prepare(sql);
+    const result = stmt.run(...params);
+    return { id: Number(result.lastInsertRowid), changes: result.changes };
   });
 }
 
 function get(sql, params = []) {
-  return new Promise((resolve, reject) => {
-    db.get(sql, params, (err, row) => {
-      if (err) {
-        reject(err);
-        return;
-      }
-      resolve(row);
-    });
+  return Promise.resolve().then(() => {
+    const stmt = db.prepare(sql);
+    return stmt.get(...params);
   });
 }
 
 function all(sql, params = []) {
-  return new Promise((resolve, reject) => {
-    db.all(sql, params, (err, rows) => {
-      if (err) {
-        reject(err);
-        return;
-      }
-      resolve(rows);
-    });
+  return Promise.resolve().then(() => {
+    const stmt = db.prepare(sql);
+    return stmt.all(...params);
   });
 }
 

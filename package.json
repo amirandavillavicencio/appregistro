@@ -1,34 +1,36 @@
 {
   "name": "ciac-registro",
   "version": "1.0.0",
-  "description": "MVP de registro de participación CIAC en Electron + SQLite",
+  "description": "Aplicación de registro de participación CIAC usando Electron y SQLite",
+  "author": "Andres Miranda Villavicencio",
   "main": "src/main/main.js",
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder --win portable zip"
   },
   "dependencies": {
-    "electron": "^30.0.9",
     "sqlite3": "^5.1.7",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "electron": "^30.0.9",
     "electron-builder": "^24.13.3"
   },
   "build": {
-    "appId": "cl.ciac.registro",
+    "appId": "cl.usm.ciac.registro",
     "productName": "CIAC Registro",
     "directories": {
-      "output": "build/windows"
+      "output": "release"
     },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
     "win": {
       "target": [
         "portable",
         "zip"
       ]
-    },
-    "portable": {
-      "artifactName": "${name}-${version}-portable.${ext}"
     }
   }
 }

@@ -1,5 +1,54 @@
-const { all, get, run } = require('../database/db');
+const { all, get, run, tableExists, getDb } = require('../database/db');
 const { getCurrentDateTimeParts, getDurationMinutes } = require('../utils/dateUtils');
+
+const CARRERA_EQUIVALENCIAS = {
+  'ingeniería civil plan común': 'Plan Común de Ingenierías y Licenciaturas',
+  'ingenieria civil plan comun': 'Plan Común de Ingenierías y Licenciaturas',
+  'ingeniería civil en informática': 'Ingeniería Civil Informática',
+  'ingenieria civil en informatica': 'Ingeniería Civil Informática',
+  arquitectura: ''
+};
+
+function normalizeText(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+function mapMatrixCarrera(carreraIngreso, allowedCarreras = []) {
+  const rawValue = String(carreraIngreso || '').trim();
+  if (!rawValue) {
+    return '';
+  }
+
+  const normalizedAllowed = new Map(
+    allowedCarreras.map((carrera) => [normalizeText(carrera), carrera])
+  );
+
+  const normalizedRaw = normalizeText(rawValue);
+
+  if (normalizedAllowed.has(normalizedRaw)) {
+    return normalizedAllowed.get(normalizedRaw);
+  }
+
+  const equivalencia = CARRERA_EQUIVALENCIAS[normalizedRaw];
+  if (equivalencia && normalizedAllowed.has(normalizeText(equivalencia))) {
+    return normalizedAllowed.get(normalizeText(equivalencia));
+  }
+
+  return '';
+}
+
+function mapMatrixCohorteToAnioIngreso(cohorte) {
+  if (cohorte === null || cohorte === undefined || cohorte === '') {
+    return '';
+  }
+
+  const year = String(cohorte).replace(/[^0-9]/g, '').slice(0, 4);
+  return /^\d{4}$/.test(year) ? year : '';
+}
 
 async function findOpenRecord(campus, runValue) {
   return get(
@@ -84,6 +133,50 @@ async function getLastProfileByRun(runValue) {
   );
 }
 
+async function getStudentFromMatrixByRun(runValue) {
+  if (!runValue) {
+    return null;
+  }
+
+  const db = getDb();
+  if (!tableExists(db, 'matriz_estudiantes')) {
+    return null;
+  }
+
+  return get(
+    `SELECT rut, dv, carrera_ingreso, cohorte, emplazamiento
+     FROM matriz_estudiantes
+     WHERE rut = ?
+     LIMIT 1`,
+    [runValue]
+  );
+}
+
+async function getAutocompleteProfileByRun(runValue, allowedCarreras = []) {
+  const matrixStudent = await getStudentFromMatrixByRun(runValue);
+
+  if (matrixStudent) {
+    return {
+      source: 'matriz_estudiantes',
+      profile: {
+        run: String(matrixStudent.rut || ''),
+        dv: String(matrixStudent.dv || '').toUpperCase(),
+        carrera: mapMatrixCarrera(matrixStudent.carrera_ingreso, allowedCarreras),
+        jornada: '',
+        anio_ingreso: mapMatrixCohorteToAnioIngreso(matrixStudent.cohorte),
+        campus_referencia: matrixStudent.emplazamiento || ''
+      }
+    };
+  }
+
+  const fallbackProfile = await getLastProfileByRun(runValue);
+
+  return {
+    source: 'attendance_records',
+    profile: fallbackProfile
+  };
+}
+
 async function getTodayCampusRecords(campus) {
   const now = getCurrentDateTimeParts();
   return all(
@@ -100,5 +193,7 @@ module.exports = {
   registerAttendance,
   getLatestTodayRecords,
   getLastProfileByRun,
+  getStudentFromMatrixByRun,
+  getAutocompleteProfileByRun,
   getTodayCampusRecords
 };

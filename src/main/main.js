@@ -11,7 +11,13 @@ const {
   getAutocompleteProfileByRun,
   getHistoricRecords
 } = require('../services/attendanceService');
-const { exportToExcel } = require('../services/exportService');
+const {
+  registerTutorAttendance,
+  closeOpenTutorRecordById,
+  getLatestTodayTutorRecords,
+  getTutorProfileByRun
+} = require('../services/tutorAttendanceService');
+const { exportToExcel, exportTutorsToExcel } = require('../services/exportService');
 const { getReportSummary } = require('../services/reportService');
 
 const CARRERAS_SAN_JOAQUIN = [
@@ -51,6 +57,15 @@ const ACTIVIDADES_PERMITIDAS = [
   'Consultas',
   'Psicoeducativo Grupal',
   'Psicoeducativo Individual'
+];
+
+const TIPOS_TUTOR_PERMITIDOS = [
+  'Tutor de Consultas',
+  'Tutor de Reforzamiento',
+  'Tutor Psicoeducativo',
+  'Administrativo',
+  'Coordinación',
+  'Otro'
 ];
 
 const ESPACIOS_POR_CAMPUS = {
@@ -151,6 +166,45 @@ ipcMain.handle('attendance:profile-by-run', async (_event, runValue) => {
   return { ok: true, ...result };
 });
 
+ipcMain.handle('tutor-attendance:register', async (_event, payload) => {
+  const validation = validateRunDv(payload.run, payload.dv);
+
+  if (!validation.valid) {
+    return { ok: false, message: validation.message };
+  }
+
+  const result = await registerTutorAttendance({
+    campus: payload.campus,
+    run: validation.run,
+    dv: validation.dv,
+    nombre: payload.nombre || '',
+    tipo: normalizeSelectValue(payload.tipo, TIPOS_TUTOR_PERMITIDOS),
+    observaciones: payload.observaciones || ''
+  });
+
+  return { ok: true, ...result };
+});
+
+ipcMain.handle('tutor-attendance:list-today', async (_event, campus) => {
+  const records = await getLatestTodayTutorRecords(campus);
+  return { ok: true, records };
+});
+
+ipcMain.handle('tutor-attendance:close-open-record', async (_event, payload) => {
+  const recordId = Number(payload.recordId);
+
+  if (!payload.campus || !Number.isInteger(recordId) || recordId <= 0) {
+    return { ok: false, message: 'Solicitud inválida para cierre manual.' };
+  }
+
+  return closeOpenTutorRecordById(payload.campus, recordId);
+});
+
+ipcMain.handle('tutor-attendance:profile-by-run', async (_event, runValue) => {
+  const profile = await getTutorProfileByRun(runValue);
+  return { ok: true, profile };
+});
+
 ipcMain.handle('scanner:parse', async (_event, rawInput) => parseScannedInput(rawInput));
 
 ipcMain.handle('attendance:export-historic', async () => {
@@ -168,6 +222,24 @@ ipcMain.handle('attendance:export-historic', async () => {
     return {
       ok: false,
       message: 'No fue posible exportar el archivo Excel. Intente nuevamente.'
+    };
+  }
+});
+
+ipcMain.handle('tutor-attendance:export-historic', async () => {
+  try {
+    const output = await exportTutorsToExcel();
+
+    return {
+      ok: true,
+      message: `Archivo Excel de tutores exportado: ${output.filename}`,
+      ...output
+    };
+  } catch (error) {
+    console.error('[Export] Error exportando Excel de tutores:', error);
+    return {
+      ok: false,
+      message: 'No fue posible exportar el archivo Excel de tutores. Intente nuevamente.'
     };
   }
 });

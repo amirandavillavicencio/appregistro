@@ -97,6 +97,26 @@ function initDb() {
 
     CREATE INDEX IF NOT EXISTS idx_attendance_run ON attendance_records(run);
     CREATE INDEX IF NOT EXISTS idx_attendance_fecha ON attendance_records(fecha);
+
+    CREATE TABLE IF NOT EXISTS tutor_attendance_records (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      campus TEXT NOT NULL,
+      fecha TEXT NOT NULL,
+      run TEXT NOT NULL,
+      dv TEXT NOT NULL,
+      nombre TEXT,
+      tipo TEXT,
+      hora_entrada TEXT,
+      hora_salida TEXT,
+      estado TEXT,
+      duracion_minutos INTEGER,
+      observaciones TEXT,
+      created_at TEXT NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_tutor_attendance_run ON tutor_attendance_records(run);
+    CREATE INDEX IF NOT EXISTS idx_tutor_attendance_fecha ON tutor_attendance_records(fecha);
+    CREATE INDEX IF NOT EXISTS idx_tutor_attendance_campus_fecha ON tutor_attendance_records(campus, fecha);
   `);
 
   const attendanceColumns = dbInstance.prepare('PRAGMA table_info(attendance_records)').all();

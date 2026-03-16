@@ -23,6 +23,14 @@ body {
   display: block;
 }
 
+.module-screen {
+  display: none;
+}
+
+.module-screen.active {
+  display: block;
+}
+
 h1,
 h2 {
   margin-top: 0;
@@ -70,6 +78,17 @@ button.secondary {
   background: #fff;
   border-radius: 10px;
   padding: 14px;
+}
+
+.module-nav {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.module-btn.active {
+  background: #0f62fe;
+  color: #fff;
 }
 
 .form-grid {

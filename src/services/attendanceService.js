@@ -199,6 +199,7 @@ async function getAutocompleteProfileByRun(runValue, allowedCarreras = []) {
         carrera: mapMatrixCarrera(matrixStudent.carrera_ingreso, allowedCarreras),
         jornada: '',
         anio_ingreso: mapMatrixCohorteToAnioIngreso(matrixStudent.cohorte),
+        cohorte: matrixStudent.cohorte,
         campus_referencia: matrixStudent.emplazamiento || ''
       }
     };

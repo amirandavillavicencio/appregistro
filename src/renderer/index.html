@@ -26,8 +26,8 @@
         </header>
 
         <form id="registro-form" class="form-grid">
-          <label>RUN<input id="run" type="text" autocomplete="off" required /></label>
-          <label>DV<input id="dv" type="text" maxlength="1" autocomplete="off" required /></label>
+          <label>RUN<input id="run" type="text" inputmode="numeric" autocomplete="off" required /></label>
+          <label>DV<input id="dv" type="text" maxlength="1" inputmode="text" autocomplete="off" required /></label>
           <label>
             Carrera
             <select id="carrera">
@@ -41,6 +41,7 @@
               <option value="">Seleccionar año</option>
             </select>
           </label>
+          <label>Semestre estimado<input id="semestreEstimado" type="text" readonly /></label>
           <label>
             Actividad
             <select id="actividad">

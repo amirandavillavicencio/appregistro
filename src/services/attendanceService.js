@@ -110,10 +110,45 @@ async function registerAttendance(payload) {
   };
 }
 
+async function closeOpenRecordById(campus, recordId) {
+  const now = getCurrentDateTimeParts();
+
+  const openRecord = await get(
+    `SELECT id, hora_entrada, run
+     FROM attendance_records
+     WHERE id = ? AND campus = ? AND hora_entrada IS NOT NULL AND (hora_salida IS NULL OR hora_salida = '')
+     LIMIT 1`,
+    [recordId, campus]
+  );
+
+  if (!openRecord) {
+    return {
+      ok: false,
+      message: 'No se encontró un registro abierto para cerrar.'
+    };
+  }
+
+  const duration = getDurationMinutes(openRecord.hora_entrada, now.hora);
+
+  await run(
+    `UPDATE attendance_records
+     SET hora_salida = ?, estado = ?, duracion_minutos = ?
+     WHERE id = ?`,
+    [now.hora, 'cerrado', duration, openRecord.id]
+  );
+
+  return {
+    ok: true,
+    type: 'salida_manual',
+    message: `Salida registrada correctamente para RUN ${openRecord.run} (${now.hora}).`,
+    recordId: openRecord.id
+  };
+}
+
 async function getLatestTodayRecords(campus) {
   const now = getCurrentDateTimeParts();
   return all(
-    `SELECT hora_entrada, hora_salida, run, carrera, actividad, estado
+    `SELECT id, hora_entrada, hora_salida, run, carrera, actividad, estado
      FROM attendance_records
      WHERE campus = ? AND fecha = ?
      ORDER BY id DESC
@@ -191,6 +226,7 @@ async function getTodayCampusRecords(campus) {
 
 module.exports = {
   registerAttendance,
+  closeOpenRecordById,
   getLatestTodayRecords,
   getLastProfileByRun,
   getStudentFromMatrixByRun,

@@ -26,7 +26,7 @@
         </header>
 
         <form id="registro-form" class="form-grid">
-          <label>RUN<input id="run" type="text" inputmode="numeric" autocomplete="off" required /></label>
+          <label>RUN<input id="run" type="text" maxlength="8" inputmode="numeric" autocomplete="off" required /></label>
           <label>DV<input id="dv" type="text" maxlength="1" inputmode="text" autocomplete="off" required /></label>
           <label>
             Carrera
@@ -48,12 +48,19 @@
               <option value="">Seleccionar actividad</option>
             </select>
           </label>
+          <label>
+            Espacio
+            <select id="espacio">
+              <option value="">Seleccionar espacio</option>
+            </select>
+          </label>
           <label>Temática<input id="tematica" type="text" /></label>
           <label class="span-2">Observaciones<textarea id="observaciones" rows="2"></textarea></label>
           <div class="button-row span-2">
             <button type="submit" class="primary">Registrar</button>
             <button type="button" id="btn-limpiar" class="secondary">Limpiar</button>
             <button type="button" id="btn-exportar" class="secondary">Exportar Excel</button>
+            <button type="button" id="btn-informe" class="secondary">Informe de uso</button>
           </div>
         </form>
 

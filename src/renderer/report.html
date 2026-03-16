@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Informe de uso CIAC</title>
+    <link rel="stylesheet" href="report.css" />
+  </head>
+  <body>
+    <main class="report-app">
+      <header>
+        <h1>Informe de uso CIAC</h1>
+      </header>
+
+      <section id="report-feedback" class="feedback"></section>
+
+      <section class="kpis" id="kpi-cards"></section>
+
+      <section class="grid-2">
+        <article class="card">
+          <h2>Uso por actividad</h2>
+          <ul id="uso-actividad"></ul>
+        </article>
+        <article class="card">
+          <h2>Uso por temática</h2>
+          <ul id="uso-tematica"></ul>
+        </article>
+        <article class="card">
+          <h2>Top 5 carreras</h2>
+          <ul id="top-carreras"></ul>
+        </article>
+        <article class="card">
+          <h2>Uso por campus</h2>
+          <ul id="uso-campus"></ul>
+        </article>
+        <article class="card span-2">
+          <h2>Distribución por semestre estimado</h2>
+          <ul id="uso-semestre"></ul>
+        </article>
+      </section>
+
+      <section class="card">
+        <h2>Resumen por carrera</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Carrera</th>
+              <th>Registros</th>
+              <th>Horas acumuladas</th>
+              <th>Promedio duración (min)</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-carreras"></tbody>
+        </table>
+      </section>
+    </main>
+
+    <script src="report.js"></script>
+  </body>
+</html>

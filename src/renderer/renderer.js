@@ -4,6 +4,11 @@
     closingRecordIds: new Set()
   };
 
+  const ESPACIOS_POR_CAMPUS = {
+    'Campus Vitacura': ['Espacio Común CIAC'],
+    'Campus San Joaquín': ['Sala 1', 'Sala 2', 'Sala 3', 'Sala 4', 'Sala 5', 'Sala 6', 'Espacio Común CIAC']
+  };
+
   const campusScreen = document.getElementById('screen-campus');
   const mainScreen = document.getElementById('screen-main');
   const campusLabel = document.getElementById('campus-label');
@@ -20,6 +25,7 @@
   const anioIngresoInput = document.getElementById('anioIngreso');
   const semestreEstimadoInput = document.getElementById('semestreEstimado');
   const actividadInput = document.getElementById('actividad');
+  const espacioInput = document.getElementById('espacio');
   const tematicaInput = document.getElementById('tematica');
   const observacionesInput = document.getElementById('observaciones');
 
@@ -78,6 +84,18 @@
     });
   }
 
+  function syncEspaciosByCampus() {
+    const currentValue = espacioInput.value;
+    const espacios = ESPACIOS_POR_CAMPUS[state.campus] || [];
+    setSelectOptions(espacioInput, espacios);
+
+    if (espacios.includes(currentValue)) {
+      espacioInput.value = currentValue;
+    } else {
+      espacioInput.value = '';
+    }
+  }
+
   function buildIngresoYears() {
     const currentYear = new Date().getFullYear();
     const years = [];
@@ -101,9 +119,8 @@
     selectElement.value = hasOption ? normalizedValue : '';
   }
 
-
   function sanitizeRunInputValue(rawValue) {
-    return String(rawValue || '').replace(/[^0-9]/g, '');
+    return String(rawValue || '').replace(/[^0-9]/g, '').slice(0, 8);
   }
 
   function sanitizeDvInputValue(rawValue) {
@@ -138,6 +155,7 @@
     setSelectOptions(carreraInput, CARRERAS_SAN_JOAQUIN);
     setSelectOptions(anioIngresoInput, buildIngresoYears());
     setSelectOptions(actividadInput, ACTIVIDADES);
+    syncEspaciosByCampus();
   }
 
   function nowParts() {
@@ -164,6 +182,7 @@
       dvInput.value = '';
     }
     actividadInput.value = '';
+    espacioInput.value = '';
     tematicaInput.value = '';
     observacionesInput.value = '';
     semestreEstimadoInput.value = 'No disponible';
@@ -235,6 +254,7 @@
   async function handleCampusSelection(campus) {
     state.campus = campus;
     campusLabel.textContent = state.campus;
+    syncEspaciosByCampus();
     campusScreen.classList.remove('active');
     mainScreen.classList.add('active');
     updateClock();
@@ -245,8 +265,8 @@
   async function normalizeRunDvFromInput() {
     const parsed = await window.ciacApi.parseScannedInput(`${runInput.value}-${dvInput.value}`);
     if (parsed.isValid) {
-      runInput.value = parsed.run;
-      dvInput.value = parsed.dv;
+      runInput.value = sanitizeRunInputValue(parsed.run);
+      dvInput.value = sanitizeDvInputValue(parsed.dv);
       return parsed.run;
     }
 
@@ -290,6 +310,7 @@
       jornada: jornadaInput.value,
       anioIngreso: anioIngresoInput.value,
       actividad: actividadInput.value,
+      espacio: espacioInput.value,
       tematica: tematicaInput.value,
       observaciones: observacionesInput.value
     };
@@ -340,10 +361,16 @@
   });
 
   document.getElementById('btn-exportar').addEventListener('click', async () => {
-    const response = await window.ciacApi.exportTodayExcel(state.campus);
+    const response = await window.ciacApi.exportHistoricExcel();
     setFeedback(response.message, response.ok ? 'success' : 'error');
   });
 
+  document.getElementById('btn-informe').addEventListener('click', async () => {
+    const response = await window.ciacApi.openReportWindow();
+    if (!response.ok) {
+      setFeedback('No fue posible abrir la ventana de informe.', 'error');
+    }
+  });
 
   runInput.addEventListener('input', () => {
     const sanitizedRun = sanitizeRunInputValue(runInput.value);
@@ -373,8 +400,8 @@
       event.preventDefault();
       const parsed = await window.ciacApi.parseScannedInput(runInput.value);
       if (parsed.isValid) {
-        runInput.value = parsed.run;
-        dvInput.value = parsed.dv;
+        runInput.value = sanitizeRunInputValue(parsed.run);
+        dvInput.value = sanitizeDvInputValue(parsed.dv);
       }
       await handleSubmit();
     }

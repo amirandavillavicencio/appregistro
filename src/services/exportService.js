@@ -2,10 +2,6 @@ const fs = require('fs');
 const path = require('path');
 const xlsx = require('xlsx');
 
-function sanitizeCampus(campus) {
-  return String(campus || 'campus').trim().toLowerCase().replace(/\s+/g, '_');
-}
-
 function mapRecordToExcelRow(item) {
   const rawRun = String(item.run || '').trim();
   const normalizedDv = String(item.dv || '').trim().toUpperCase();
@@ -20,8 +16,10 @@ function mapRecordToExcelRow(item) {
     Carrera: item.carrera || '',
     Sede: item.campus || '',
     'Año Ingreso': item.anio_ingreso || '',
+    Jornada: item.jornada || '',
     Actividad: item.actividad || '',
     Temática: item.tematica || '',
+    Espacio: item.espacio || '',
     Observaciones: item.observaciones || ''
   };
 }
@@ -36,8 +34,10 @@ function buildMainWorksheet(records = []) {
     'Carrera',
     'Sede',
     'Año Ingreso',
+    'Jornada',
     'Actividad',
     'Temática',
+    'Espacio',
     'Observaciones'
   ];
 
@@ -49,12 +49,12 @@ function buildMainWorksheet(records = []) {
   });
 }
 
-function exportToExcel({ campus, records }) {
+function exportToExcel({ records }) {
   const workbook = xlsx.utils.book_new();
   const worksheet = buildMainWorksheet(records);
-  xlsx.utils.book_append_sheet(workbook, worksheet, 'Registro SJ');
+  xlsx.utils.book_append_sheet(workbook, worksheet, 'Histórico CIAC');
 
-  const filename = `registro_ciac_historico_${sanitizeCampus(campus)}.xlsx`;
+  const filename = 'registro_ciac_historico.xlsx';
   const outputDir = path.join(__dirname, '..', '..', 'data');
 
   if (!fs.existsSync(outputDir)) {

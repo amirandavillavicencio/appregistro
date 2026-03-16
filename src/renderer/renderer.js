@@ -1,6 +1,7 @@
 (() => {
   const state = {
-    campus: ''
+    campus: '',
+    closingRecordIds: new Set()
   };
 
   const campusScreen = document.getElementById('screen-campus');
@@ -137,6 +138,21 @@
     return value === null || value === undefined || value === '' ? '-' : String(value);
   }
 
+  function isRecordOpen(record) {
+    return record.estado === 'abierto' && (!record.hora_salida || record.hora_salida === '');
+  }
+
+  function buildManualCloseButton(record) {
+    if (!isRecordOpen(record)) {
+      return '<span class="row-action-placeholder">-</span>';
+    }
+
+    const isClosing = state.closingRecordIds.has(record.id);
+    const label = isClosing ? 'Registrando...' : 'Registrar salida';
+
+    return `<button type="button" class="secondary row-action-btn" data-action="close-record" data-record-id="${record.id}" ${isClosing ? 'disabled' : ''}>${label}</button>`;
+  }
+
   async function loadRecords() {
     const response = await window.ciacApi.getLatestRecords(state.campus);
     recordsBody.innerHTML = '';
@@ -150,9 +166,35 @@
         <td>${rowCell(record.carrera)}</td>
         <td>${rowCell(record.actividad)}</td>
         <td>${rowCell(record.estado)}</td>
+        <td>${buildManualCloseButton(record)}</td>
       `;
       recordsBody.appendChild(tr);
     });
+  }
+
+  async function handleManualClose(recordId) {
+    if (state.closingRecordIds.has(recordId)) {
+      return;
+    }
+
+    state.closingRecordIds.add(recordId);
+    await loadRecords();
+
+    const response = await window.ciacApi.closeOpenRecord({
+      campus: state.campus,
+      recordId
+    });
+
+    state.closingRecordIds.delete(recordId);
+
+    if (!response.ok) {
+      setFeedback(response.message, 'error');
+      await loadRecords();
+      return;
+    }
+
+    setFeedback(response.message, 'success');
+    await loadRecords();
   }
 
   async function handleCampusSelection(campus) {
@@ -232,6 +274,21 @@
     button.addEventListener('click', async () => {
       await handleCampusSelection(button.dataset.campus);
     });
+  });
+
+  recordsBody.addEventListener('click', async (event) => {
+    const actionButton = event.target.closest('[data-action="close-record"]');
+    if (!actionButton) {
+      return;
+    }
+
+    const recordId = Number(actionButton.dataset.recordId);
+    if (!Number.isInteger(recordId) || recordId <= 0) {
+      setFeedback('No fue posible identificar el registro para cierre manual.', 'error');
+      return;
+    }
+
+    await handleManualClose(recordId);
   });
 
   form.addEventListener('submit', async (event) => {

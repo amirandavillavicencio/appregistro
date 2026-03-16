@@ -7,6 +7,7 @@ const { validateRunDv } = require('../utils/validation');
 const { parseScannedInput } = require('../utils/scanner');
 const {
   registerAttendance,
+  closeOpenRecordById,
   getLatestTodayRecords,
   getAutocompleteProfileByRun,
   getTodayCampusRecords
@@ -113,6 +114,17 @@ ipcMain.handle('attendance:register', async (_event, payload) => {
 ipcMain.handle('attendance:list-today', async (_event, campus) => {
   const records = await getLatestTodayRecords(campus);
   return { ok: true, records };
+});
+
+
+ipcMain.handle('attendance:close-open-record', async (_event, payload) => {
+  const recordId = Number(payload.recordId);
+
+  if (!payload.campus || !Number.isInteger(recordId) || recordId <= 0) {
+    return { ok: false, message: 'Solicitud inválida para cierre manual.' };
+  }
+
+  return closeOpenRecordById(payload.campus, recordId);
 });
 
 ipcMain.handle('attendance:profile-by-run', async (_event, runValue) => {

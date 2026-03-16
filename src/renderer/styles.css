@@ -130,3 +130,17 @@ td {
   padding: 10px;
   border-bottom: 1px solid #e5e7eb;
 }
+
+.row-action-btn {
+  padding: 6px 12px;
+  font-size: 0.9rem;
+}
+
+.row-action-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.row-action-placeholder {
+  color: #64748b;
+}

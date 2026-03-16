@@ -8,7 +8,7 @@ const { parseScannedInput } = require('../utils/scanner');
 const {
   registerAttendance,
   getLatestTodayRecords,
-  getLastProfileByRun,
+  getAutocompleteProfileByRun,
   getTodayCampusRecords
 } = require('../services/attendanceService');
 const { exportToExcel } = require('../services/exportService');
@@ -116,8 +116,8 @@ ipcMain.handle('attendance:list-today', async (_event, campus) => {
 });
 
 ipcMain.handle('attendance:profile-by-run', async (_event, runValue) => {
-  const profile = await getLastProfileByRun(runValue);
-  return { ok: true, profile };
+  const result = await getAutocompleteProfileByRun(runValue, CARRERAS_SAN_JOAQUIN);
+  return { ok: true, ...result };
 });
 
 ipcMain.handle('scanner:parse', async (_event, rawInput) => parseScannedInput(rawInput));

@@ -187,11 +187,17 @@
     }
 
     const response = await window.ciacApi.getProfileByRun(runValue);
-    if (response.profile) {
-      setSelectValue(carreraInput, response.profile.carrera);
-      jornadaInput.value = response.profile.jornada || '';
-      setSelectValue(anioIngresoInput, response.profile.anio_ingreso);
+    if (!response.profile) {
+      return;
     }
+
+    if (response.profile.dv) {
+      dvInput.value = response.profile.dv;
+    }
+
+    setSelectValue(carreraInput, response.profile.carrera);
+    jornadaInput.value = response.profile.jornada || '';
+    setSelectValue(anioIngresoInput, response.profile.anio_ingreso);
   }
 
   async function handleSubmit() {

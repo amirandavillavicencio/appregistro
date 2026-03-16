@@ -15,7 +15,7 @@ function buildSemestreEstimado(anioIngreso) {
   const currentYear = new Date().getFullYear();
 
   if (!Number.isInteger(year) || year < 1900 || year > currentYear + 1) {
-    return 'No disponible';
+    return null;
   }
 
   const currentMonth = new Date().getMonth() + 1;
@@ -23,10 +23,10 @@ function buildSemestreEstimado(anioIngreso) {
   const semestreEstimado = ((currentYear - year) * 2) + semestreActual;
 
   if (!Number.isInteger(semestreEstimado) || semestreEstimado < 1) {
-    return 'No disponible';
+    return null;
   }
 
-  return `Semestre ${semestreEstimado}`;
+  return semestreEstimado;
 }
 
 async function getReportSummary() {
@@ -80,12 +80,20 @@ async function getReportSummary() {
   const semestreMap = new Map();
   semestreRows.forEach((row) => {
     const key = buildSemestreEstimado(row.anio_ingreso);
+    if (!key) {
+      return;
+    }
+
     semestreMap.set(key, (semestreMap.get(key) || 0) + 1);
   });
 
   const distribucionSemestre = Array.from(semestreMap.entries())
-    .map(([label, registros]) => ({ label, registros }))
-    .sort((a, b) => b.registros - a.registros || a.label.localeCompare(b.label));
+    .map(([semestre, registros]) => ({
+      semestre,
+      label: `Semestre ${semestre}`,
+      registros
+    }))
+    .sort((a, b) => a.semestre - b.semestre);
 
   const tablaCarreras = all(
     `SELECT

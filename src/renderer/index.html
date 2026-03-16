@@ -25,63 +25,116 @@
           <div><strong>Hora:</strong> <span id="hora-label"></span></div>
         </header>
 
-        <form id="registro-form" class="form-grid">
-          <label>RUN<input id="run" type="text" maxlength="8" inputmode="numeric" autocomplete="off" required /></label>
-          <label>DV<input id="dv" type="text" maxlength="1" inputmode="text" autocomplete="off" required /></label>
-          <label>
-            Carrera
-            <select id="carrera">
-              <option value="">Seleccionar carrera</option>
-            </select>
-          </label>
-          <label>Jornada<input id="jornada" type="text" /></label>
-          <label>
-            Año ingreso
-            <select id="anioIngreso">
-              <option value="">Seleccionar año</option>
-            </select>
-          </label>
-          <label>Semestre estimado<input id="semestreEstimado" type="text" readonly /></label>
-          <label>
-            Actividad
-            <select id="actividad">
-              <option value="">Seleccionar actividad</option>
-            </select>
-          </label>
-          <label>
-            Espacio
-            <select id="espacio">
-              <option value="">Seleccionar espacio</option>
-            </select>
-          </label>
-          <label>Temática<input id="tematica" type="text" /></label>
-          <label class="span-2">Observaciones<textarea id="observaciones" rows="2"></textarea></label>
-          <div class="button-row span-2">
-            <button type="submit" class="primary">Registrar</button>
-            <button type="button" id="btn-limpiar" class="secondary">Limpiar</button>
-            <button type="button" id="btn-exportar" class="secondary">Exportar Excel</button>
-            <button type="button" id="btn-informe" class="secondary">Informe de uso</button>
-          </div>
-        </form>
+        <nav class="module-nav" aria-label="Módulos de registro">
+          <button type="button" class="secondary module-btn active" data-module="alumnos">Registro de alumnos</button>
+          <button type="button" class="secondary module-btn" data-module="tutores">Asistencia de tutores</button>
+        </nav>
 
-        <p id="feedback" class="feedback"></p>
+        <section id="module-alumnos" class="module-screen active">
+          <form id="registro-form" class="form-grid">
+            <label>RUN<input id="run" type="text" maxlength="8" inputmode="numeric" autocomplete="off" required /></label>
+            <label>DV<input id="dv" type="text" maxlength="1" inputmode="text" autocomplete="off" required /></label>
+            <label>
+              Carrera
+              <select id="carrera">
+                <option value="">Seleccionar carrera</option>
+              </select>
+            </label>
+            <label>Jornada<input id="jornada" type="text" /></label>
+            <label>
+              Año ingreso
+              <select id="anioIngreso">
+                <option value="">Seleccionar año</option>
+              </select>
+            </label>
+            <label>Semestre estimado<input id="semestreEstimado" type="text" readonly /></label>
+            <label>
+              Actividad
+              <select id="actividad">
+                <option value="">Seleccionar actividad</option>
+              </select>
+            </label>
+            <label>
+              Espacio
+              <select id="espacio">
+                <option value="">Seleccionar espacio</option>
+              </select>
+            </label>
+            <label>Temática<input id="tematica" type="text" /></label>
+            <label class="span-2">Observaciones<textarea id="observaciones" rows="2"></textarea></label>
+            <div class="button-row span-2">
+              <button type="submit" class="primary">Registrar</button>
+              <button type="button" id="btn-limpiar" class="secondary">Limpiar</button>
+              <button type="button" id="btn-exportar" class="secondary">Exportar Excel</button>
+              <button type="button" id="btn-informe" class="secondary">Informe de uso</button>
+            </div>
+          </form>
 
-        <section>
-          <h2>Últimos registros del día</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>Hora entrada</th>
-                <th>Hora salida</th>
-                <th>RUN</th>
-                <th>Carrera</th>
-                <th>Actividad</th>
-                <th>Estado</th>
-                <th>Acción</th>
-              </tr>
-            </thead>
-            <tbody id="records-body"></tbody>
-          </table>
+          <p id="feedback" class="feedback"></p>
+
+          <section>
+            <h2>Últimos registros del día</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Hora entrada</th>
+                  <th>Hora salida</th>
+                  <th>RUN</th>
+                  <th>Carrera</th>
+                  <th>Actividad</th>
+                  <th>Estado</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody id="records-body"></tbody>
+            </table>
+          </section>
+        </section>
+
+        <section id="module-tutores" class="module-screen">
+          <form id="tutor-form" class="form-grid">
+            <label>RUN<input id="tutor-run" type="text" maxlength="8" inputmode="numeric" autocomplete="off" required /></label>
+            <label>DV<input id="tutor-dv" type="text" maxlength="1" inputmode="text" autocomplete="off" required /></label>
+            <label>Nombre<input id="tutor-nombre" type="text" autocomplete="off" /></label>
+            <label>
+              Tipo
+              <select id="tutor-tipo">
+                <option value="">Seleccionar tipo</option>
+                <option value="Tutor de Consultas">Tutor de Consultas</option>
+                <option value="Tutor de Reforzamiento">Tutor de Reforzamiento</option>
+                <option value="Tutor Psicoeducativo">Tutor Psicoeducativo</option>
+                <option value="Administrativo">Administrativo</option>
+                <option value="Coordinación">Coordinación</option>
+                <option value="Otro">Otro</option>
+              </select>
+            </label>
+            <label class="span-2">Observaciones<textarea id="tutor-observaciones" rows="2"></textarea></label>
+            <div class="button-row span-2">
+              <button type="submit" class="primary">Registrar</button>
+              <button type="button" id="btn-tutor-limpiar" class="secondary">Limpiar</button>
+              <button type="button" id="btn-tutor-exportar" class="secondary">Exportar Excel Tutores</button>
+            </div>
+          </form>
+
+          <p id="tutor-feedback" class="feedback"></p>
+
+          <section>
+            <h2>Registros de tutores del día</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Hora entrada</th>
+                  <th>Hora salida</th>
+                  <th>RUN</th>
+                  <th>Nombre</th>
+                  <th>Tipo</th>
+                  <th>Estado</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody id="tutor-records-body"></tbody>
+            </table>
+          </section>
         </section>
       </section>
     </main>

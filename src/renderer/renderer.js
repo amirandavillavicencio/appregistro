@@ -18,6 +18,7 @@
   const carreraInput = document.getElementById('carrera');
   const jornadaInput = document.getElementById('jornada');
   const anioIngresoInput = document.getElementById('anioIngreso');
+  const semestreEstimadoInput = document.getElementById('semestreEstimado');
   const actividadInput = document.getElementById('actividad');
   const tematicaInput = document.getElementById('tematica');
   const observacionesInput = document.getElementById('observaciones');
@@ -100,6 +101,39 @@
     selectElement.value = hasOption ? normalizedValue : '';
   }
 
+
+  function sanitizeRunInputValue(rawValue) {
+    return String(rawValue || '').replace(/[^0-9]/g, '');
+  }
+
+  function sanitizeDvInputValue(rawValue) {
+    return String(rawValue || '').toUpperCase().replace(/[^0-9K]/g, '').slice(0, 1);
+  }
+
+  function getSemestreEstimado(cohorteValue) {
+    const cohorte = Number(String(cohorteValue || '').replace(/[^0-9]/g, '').slice(0, 4));
+    const currentYear = new Date().getFullYear();
+
+    if (!Number.isInteger(cohorte) || cohorte < 1900 || cohorte > currentYear + 1) {
+      return '';
+    }
+
+    const currentMonth = new Date().getMonth() + 1;
+    const semestreActual = currentMonth <= 6 ? 1 : 2;
+    const semestreEstimado = ((currentYear - cohorte) * 2) + semestreActual;
+
+    if (!Number.isInteger(semestreEstimado) || semestreEstimado < 1) {
+      return '';
+    }
+
+    return String(semestreEstimado);
+  }
+
+  function setSemestreEstimado(cohorteValue) {
+    const semestreEstimado = getSemestreEstimado(cohorteValue);
+    semestreEstimadoInput.value = semestreEstimado || 'No disponible';
+  }
+
   function initializeFormOptions() {
     setSelectOptions(carreraInput, CARRERAS_SAN_JOAQUIN);
     setSelectOptions(anioIngresoInput, buildIngresoYears());
@@ -132,6 +166,7 @@
     actividadInput.value = '';
     tematicaInput.value = '';
     observacionesInput.value = '';
+    semestreEstimadoInput.value = 'No disponible';
   }
 
   function rowCell(value) {
@@ -215,8 +250,8 @@
       return parsed.run;
     }
 
-    const fallbackRun = runInput.value.replace(/[^0-9]/g, '');
-    const fallbackDv = dvInput.value.toUpperCase().replace(/[^0-9K]/g, '');
+    const fallbackRun = sanitizeRunInputValue(runInput.value);
+    const fallbackDv = sanitizeDvInputValue(dvInput.value);
     runInput.value = fallbackRun;
     dvInput.value = fallbackDv;
     return fallbackRun;
@@ -230,16 +265,18 @@
 
     const response = await window.ciacApi.getProfileByRun(runValue);
     if (!response.profile) {
+      setSemestreEstimado('');
       return;
     }
 
     if (response.profile.dv) {
-      dvInput.value = response.profile.dv;
+      dvInput.value = sanitizeDvInputValue(response.profile.dv);
     }
 
     setSelectValue(carreraInput, response.profile.carrera);
     jornadaInput.value = response.profile.jornada || '';
     setSelectValue(anioIngresoInput, response.profile.anio_ingreso);
+    setSemestreEstimado(response.profile.cohorte);
   }
 
   async function handleSubmit() {
@@ -307,6 +344,26 @@
     setFeedback(response.message, 'success');
   });
 
+
+  runInput.addEventListener('input', () => {
+    const sanitizedRun = sanitizeRunInputValue(runInput.value);
+    if (runInput.value !== sanitizedRun) {
+      runInput.value = sanitizedRun;
+    }
+
+    if (sanitizedRun.length === 8 && document.activeElement === runInput) {
+      dvInput.focus();
+      dvInput.select();
+    }
+  });
+
+  dvInput.addEventListener('input', () => {
+    const sanitizedDv = sanitizeDvInputValue(dvInput.value);
+    if (dvInput.value !== sanitizedDv) {
+      dvInput.value = sanitizedDv;
+    }
+  });
+
   runInput.addEventListener('blur', async () => {
     await onRunBlur();
   });
@@ -324,5 +381,6 @@
   });
 
   initializeFormOptions();
+  semestreEstimadoInput.value = 'No disponible';
   setInterval(updateClock, 1000);
 })();

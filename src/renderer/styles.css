@@ -144,3 +144,8 @@ td {
 .row-action-placeholder {
   color: #64748b;
 }
+
+input[readonly] {
+  background: #f8fafc;
+  color: #334155;
+}

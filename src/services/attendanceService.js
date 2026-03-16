@@ -225,6 +225,17 @@ async function getTodayCampusRecords(campus) {
   );
 }
 
+async function getHistoricCampusRecords(campus) {
+  return all(
+    `SELECT id, campus, fecha, run, dv, carrera, jornada, anio_ingreso, actividad, tematica, observaciones,
+            hora_entrada, hora_salida, estado, duracion_minutos, created_at
+     FROM attendance_records
+     WHERE campus = ?
+     ORDER BY fecha ASC, hora_entrada ASC, id ASC`,
+    [campus]
+  );
+}
+
 module.exports = {
   registerAttendance,
   closeOpenRecordById,
@@ -232,5 +243,6 @@ module.exports = {
   getLastProfileByRun,
   getStudentFromMatrixByRun,
   getAutocompleteProfileByRun,
-  getTodayCampusRecords
+  getTodayCampusRecords,
+  getHistoricCampusRecords
 };

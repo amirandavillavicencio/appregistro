@@ -9,9 +9,10 @@ const {
   closeOpenRecordById,
   getLatestTodayRecords,
   getAutocompleteProfileByRun,
-  getHistoricCampusRecords
+  getHistoricRecords
 } = require('../services/attendanceService');
 const { exportToExcel } = require('../services/exportService');
+const { getReportSummary } = require('../services/reportService');
 
 const CARRERAS_SAN_JOAQUIN = [
   'Plan Común de Ingenierías y Licenciaturas',
@@ -52,6 +53,11 @@ const ACTIVIDADES_PERMITIDAS = [
   'Psicoeducativo Individual'
 ];
 
+const ESPACIOS_POR_CAMPUS = {
+  'Campus Vitacura': ['Espacio Común CIAC'],
+  'Campus San Joaquín': ['Sala 1', 'Sala 2', 'Sala 3', 'Sala 4', 'Sala 5', 'Sala 6', 'Espacio Común CIAC']
+};
+
 function buildAniosIngresoPermitidos() {
   const currentYear = new Date().getFullYear();
   const years = [];
@@ -72,7 +78,6 @@ function normalizeSelectValue(value, allowedValues) {
   return allowedValues.includes(normalized) ? normalized : '';
 }
 
-
 function createWindow() {
   const mainWindow = new BrowserWindow({
     width: 1200,
@@ -86,6 +91,20 @@ function createWindow() {
   mainWindow.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
 }
 
+function createReportWindow() {
+  const reportWindow = new BrowserWindow({
+    width: 1100,
+    height: 780,
+    title: 'Informe de uso CIAC',
+    webPreferences: {
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js')
+    }
+  });
+
+  reportWindow.loadFile(path.join(__dirname, '..', 'renderer', 'report.html'));
+}
+
 ipcMain.handle('attendance:register', async (_event, payload) => {
   const validation = validateRunDv(payload.run, payload.dv);
 
@@ -94,6 +113,7 @@ ipcMain.handle('attendance:register', async (_event, payload) => {
   }
 
   const aniosIngresoPermitidos = buildAniosIngresoPermitidos();
+  const espaciosPermitidos = ESPACIOS_POR_CAMPUS[payload.campus] || [];
 
   const result = await registerAttendance({
     campus: payload.campus,
@@ -104,6 +124,7 @@ ipcMain.handle('attendance:register', async (_event, payload) => {
     anioIngreso: normalizeSelectValue(payload.anioIngreso, aniosIngresoPermitidos),
     actividad: normalizeSelectValue(payload.actividad, ACTIVIDADES_PERMITIDAS),
     tematica: payload.tematica || '',
+    espacio: normalizeSelectValue(payload.espacio, espaciosPermitidos),
     observaciones: payload.observaciones || ''
   });
 
@@ -114,7 +135,6 @@ ipcMain.handle('attendance:list-today', async (_event, campus) => {
   const records = await getLatestTodayRecords(campus);
   return { ok: true, records };
 });
-
 
 ipcMain.handle('attendance:close-open-record', async (_event, payload) => {
   const recordId = Number(payload.recordId);
@@ -133,13 +153,10 @@ ipcMain.handle('attendance:profile-by-run', async (_event, runValue) => {
 
 ipcMain.handle('scanner:parse', async (_event, rawInput) => parseScannedInput(rawInput));
 
-ipcMain.handle('attendance:export-today', async (_event, campus) => {
+ipcMain.handle('attendance:export-historic', async () => {
   try {
-    const records = await getHistoricCampusRecords(campus);
-    const output = exportToExcel({
-      campus,
-      records
-    });
+    const records = await getHistoricRecords();
+    const output = exportToExcel({ records });
 
     return {
       ok: true,
@@ -152,6 +169,21 @@ ipcMain.handle('attendance:export-today', async (_event, campus) => {
       ok: false,
       message: 'No fue posible exportar el archivo Excel. Intente nuevamente.'
     };
+  }
+});
+
+ipcMain.handle('report:open-window', async () => {
+  createReportWindow();
+  return { ok: true };
+});
+
+ipcMain.handle('report:get-summary', async () => {
+  try {
+    const summary = await getReportSummary();
+    return { ok: true, summary };
+  } catch (error) {
+    console.error('[Report] Error generando informe:', error);
+    return { ok: false, message: 'No fue posible cargar el informe.' };
   }
 });
 

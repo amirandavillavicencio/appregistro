@@ -86,6 +86,7 @@ function initDb() {
       anio_ingreso TEXT,
       actividad TEXT,
       tematica TEXT,
+      espacio TEXT,
       observaciones TEXT,
       hora_entrada TEXT,
       hora_salida TEXT,
@@ -97,6 +98,13 @@ function initDb() {
     CREATE INDEX IF NOT EXISTS idx_attendance_run ON attendance_records(run);
     CREATE INDEX IF NOT EXISTS idx_attendance_fecha ON attendance_records(fecha);
   `);
+
+  const attendanceColumns = dbInstance.prepare('PRAGMA table_info(attendance_records)').all();
+  const hasEspacioColumn = attendanceColumns.some((column) => column.name === 'espacio');
+
+  if (!hasEspacioColumn) {
+    dbInstance.exec('ALTER TABLE attendance_records ADD COLUMN espacio TEXT;');
+  }
 
   importMatrixIfMissing(dbInstance);
 

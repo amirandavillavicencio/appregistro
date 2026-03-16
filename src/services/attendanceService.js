@@ -67,9 +67,9 @@ async function registerAttendance(payload) {
   if (!existingOpen) {
     const result = await run(
       `INSERT INTO attendance_records (
-        campus, fecha, run, dv, carrera, jornada, anio_ingreso, actividad, tematica, observaciones,
+        campus, fecha, run, dv, carrera, jornada, anio_ingreso, actividad, tematica, espacio, observaciones,
         hora_entrada, hora_salida, estado, duracion_minutos, created_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, NULL, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, NULL, ?)`,
       [
         payload.campus,
         now.fecha,
@@ -80,6 +80,7 @@ async function registerAttendance(payload) {
         payload.anioIngreso,
         payload.actividad,
         payload.tematica,
+        payload.espacio,
         payload.observaciones,
         now.hora,
         'abierto',
@@ -216,7 +217,7 @@ async function getAutocompleteProfileByRun(runValue, allowedCarreras = []) {
 async function getTodayCampusRecords(campus) {
   const now = getCurrentDateTimeParts();
   return all(
-    `SELECT campus, fecha, run, dv, carrera, jornada, anio_ingreso, actividad, tematica, observaciones,
+    `SELECT campus, fecha, run, dv, carrera, jornada, anio_ingreso, actividad, tematica, espacio, observaciones,
             hora_entrada, hora_salida, estado, duracion_minutos, created_at
      FROM attendance_records
      WHERE campus = ? AND fecha = ?
@@ -225,14 +226,12 @@ async function getTodayCampusRecords(campus) {
   );
 }
 
-async function getHistoricCampusRecords(campus) {
+async function getHistoricRecords() {
   return all(
-    `SELECT id, campus, fecha, run, dv, carrera, jornada, anio_ingreso, actividad, tematica, observaciones,
+    `SELECT id, campus, fecha, run, dv, carrera, jornada, anio_ingreso, actividad, tematica, espacio, observaciones,
             hora_entrada, hora_salida, estado, duracion_minutos, created_at
      FROM attendance_records
-     WHERE campus = ?
-     ORDER BY fecha ASC, hora_entrada ASC, id ASC`,
-    [campus]
+     ORDER BY fecha ASC, hora_entrada ASC, id ASC`
   );
 }
 
@@ -244,5 +243,5 @@ module.exports = {
   getStudentFromMatrixByRun,
   getAutocompleteProfileByRun,
   getTodayCampusRecords,
-  getHistoricCampusRecords
+  getHistoricRecords
 };

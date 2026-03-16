@@ -5,6 +5,8 @@ contextBridge.exposeInMainWorld('ciacApi', {
   getLatestRecords: (campus) => ipcRenderer.invoke('attendance:list-today', campus),
   closeOpenRecord: (payload) => ipcRenderer.invoke('attendance:close-open-record', payload),
   getProfileByRun: (runValue) => ipcRenderer.invoke('attendance:profile-by-run', runValue),
-  exportTodayExcel: (campus) => ipcRenderer.invoke('attendance:export-today', campus),
-  parseScannedInput: (rawInput) => ipcRenderer.invoke('scanner:parse', rawInput)
+  exportHistoricExcel: () => ipcRenderer.invoke('attendance:export-historic'),
+  parseScannedInput: (rawInput) => ipcRenderer.invoke('scanner:parse', rawInput),
+  openReportWindow: () => ipcRenderer.invoke('report:open-window'),
+  getReportSummary: () => ipcRenderer.invoke('report:get-summary')
 });

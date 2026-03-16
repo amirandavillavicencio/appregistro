@@ -341,7 +341,7 @@
 
   document.getElementById('btn-exportar').addEventListener('click', async () => {
     const response = await window.ciacApi.exportTodayExcel(state.campus);
-    setFeedback(response.message, 'success');
+    setFeedback(response.message, response.ok ? 'success' : 'error');
   });
 
 

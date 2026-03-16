@@ -2,7 +2,6 @@ const path = require('path');
 const { app, BrowserWindow, ipcMain } = require('electron');
 
 const { initDb } = require('../database/db');
-const { getCurrentDateTimeParts } = require('../utils/dateUtils');
 const { validateRunDv } = require('../utils/validation');
 const { parseScannedInput } = require('../utils/scanner');
 const {
@@ -10,7 +9,7 @@ const {
   closeOpenRecordById,
   getLatestTodayRecords,
   getAutocompleteProfileByRun,
-  getTodayCampusRecords
+  getHistoricCampusRecords
 } = require('../services/attendanceService');
 const { exportToExcel } = require('../services/exportService');
 
@@ -135,20 +134,25 @@ ipcMain.handle('attendance:profile-by-run', async (_event, runValue) => {
 ipcMain.handle('scanner:parse', async (_event, rawInput) => parseScannedInput(rawInput));
 
 ipcMain.handle('attendance:export-today', async (_event, campus) => {
-  const records = await getTodayCampusRecords(campus);
-  const { fecha } = getCurrentDateTimeParts();
+  try {
+    const records = await getHistoricCampusRecords(campus);
+    const output = exportToExcel({
+      campus,
+      records
+    });
 
-  const output = exportToExcel({
-    campus,
-    fecha,
-    records
-  });
-
-  return {
-    ok: true,
-    message: `Archivo Excel exportado: ${output.filename}`,
-    ...output
-  };
+    return {
+      ok: true,
+      message: `Archivo Excel histórico exportado: ${output.filename}`,
+      ...output
+    };
+  } catch (error) {
+    console.error('[Export] Error exportando Excel:', error);
+    return {
+      ok: false,
+      message: 'No fue posible exportar el archivo Excel. Intente nuevamente.'
+    };
+  }
 });
 
 app.whenReady().then(async () => {

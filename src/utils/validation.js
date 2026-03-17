@@ -6,6 +6,28 @@ function normalizeDv(rawDv) {
   return String(rawDv || '').trim().toUpperCase().replace(/[^0-9K]/g, '');
 }
 
+function calculateRutDv(run) {
+  const reversedDigits = String(run).split('').reverse();
+  const series = [2, 3, 4, 5, 6, 7];
+
+  const sum = reversedDigits.reduce((acc, digit, index) => {
+    const multiplier = series[index % series.length];
+    return acc + Number(digit) * multiplier;
+  }, 0);
+
+  const remainder = 11 - (sum % 11);
+
+  if (remainder === 11) {
+    return '0';
+  }
+
+  if (remainder === 10) {
+    return 'K';
+  }
+
+  return String(remainder);
+}
+
 function validateRunDv(run, dv) {
   const normalizedRun = normalizeRun(run);
   const normalizedDv = normalizeDv(dv);
@@ -26,6 +48,12 @@ function validateRunDv(run, dv) {
     return { valid: false, message: 'DV debe ser un dígito o K.' };
   }
 
+  const expectedDv = calculateRutDv(normalizedRun);
+
+  if (normalizedDv !== expectedDv) {
+    return { valid: false, message: 'RUN o DV inválido. Verifique e intente nuevamente.' };
+  }
+
   return {
     valid: true,
     run: normalizedRun,
@@ -36,5 +64,6 @@ function validateRunDv(run, dv) {
 module.exports = {
   validateRunDv,
   normalizeRun,
-  normalizeDv
+  normalizeDv,
+  calculateRutDv
 };

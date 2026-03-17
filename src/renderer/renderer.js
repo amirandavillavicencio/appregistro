@@ -50,6 +50,8 @@
     'Psicoeducativo Individual'
   ];
 
+  const JORNADAS = ['Diurno', 'Vespertino'];
+
   const campusScreen = document.getElementById('screen-campus');
   const mainScreen = document.getElementById('screen-main');
   const campusLabel = document.getElementById('campus-label');
@@ -65,6 +67,7 @@
   const form = document.getElementById('registro-form');
   const runInput = document.getElementById('run');
   const dvInput = document.getElementById('dv');
+  const nombreInput = document.getElementById('nombre');
   const carreraInput = document.getElementById('carrera');
   const jornadaInput = document.getElementById('jornada');
   const anioIngresoInput = document.getElementById('anioIngreso');
@@ -134,7 +137,7 @@
   }
 
   function sanitizeRunInputValue(rawValue) {
-    return String(rawValue || '').replace(/[^0-9]/g, '').slice(0, 8);
+    return String(rawValue || '').replace(/[^0-9]/g, '').slice(0, 9);
   }
 
   function sanitizeDvInputValue(rawValue) {
@@ -169,6 +172,7 @@
     setSelectOptions(carreraInput, CARRERAS_SAN_JOAQUIN);
     setSelectOptions(anioIngresoInput, buildIngresoYears());
     setSelectOptions(actividadInput, ACTIVIDADES);
+    setSelectOptions(jornadaInput, JORNADAS);
     syncEspaciosByCampus();
   }
 
@@ -188,11 +192,34 @@
     tutorFeedback.className = `feedback ${type}`;
   }
 
+
+  function mapJornadaValue(rawValue) {
+    const normalized = String(rawValue || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
+
+    if (normalized === 'diurno' || normalized === 'dia') {
+      return 'Diurno';
+    }
+
+    if (normalized === 'vespertino' || normalized === 'tarde' || normalized === 'noche') {
+      return 'Vespertino';
+    }
+
+    return '';
+  }
+
   function clearForm(keepRun = false) {
     if (!keepRun) {
       runInput.value = '';
       dvInput.value = '';
     }
+    nombreInput.value = '';
+    carreraInput.value = '';
+    jornadaInput.value = '';
+    anioIngresoInput.value = '';
     actividadInput.value = '';
     espacioInput.value = '';
     tematicaInput.value = '';
@@ -268,6 +295,7 @@
         <td>${rowCell(record.hora_entrada)}</td>
         <td>${rowCell(record.hora_salida)}</td>
         <td>${rowCell(record.run)}</td>
+        <td>${rowCell(record.nombre)}</td>
         <td>${rowCell(record.carrera)}</td>
         <td>${rowCell(record.actividad)}</td>
         <td>${rowCell(record.estado)}</td>
@@ -381,6 +409,10 @@
 
     const response = await window.ciacApi.getProfileByRun(runValue);
     if (!response.profile) {
+      nombreInput.value = '';
+      setSelectValue(carreraInput, '');
+      setSelectValue(jornadaInput, '');
+      setSelectValue(anioIngresoInput, '');
       setSemestreEstimado('');
       return;
     }
@@ -389,10 +421,11 @@
       dvInput.value = sanitizeDvInputValue(response.profile.dv);
     }
 
+    nombreInput.value = response.profile.nombre || '';
     setSelectValue(carreraInput, response.profile.carrera);
-    jornadaInput.value = response.profile.jornada || '';
+    setSelectValue(jornadaInput, mapJornadaValue(response.profile.jornada));
     setSelectValue(anioIngresoInput, response.profile.anio_ingreso);
-    setSemestreEstimado(response.profile.cohorte);
+    setSemestreEstimado(response.profile.cohorte || response.profile.anio_ingreso);
   }
 
   async function onTutorRunBlur() {
@@ -421,6 +454,7 @@
       campus: state.campus,
       run: runInput.value,
       dv: dvInput.value,
+      nombre: nombreInput.value,
       carrera: carreraInput.value,
       jornada: jornadaInput.value,
       anioIngreso: anioIngresoInput.value,
@@ -555,10 +589,6 @@
       runInput.value = sanitizedRun;
     }
 
-    if (sanitizedRun.length === 8 && document.activeElement === runInput) {
-      dvInput.focus();
-      dvInput.select();
-    }
   });
 
   tutorRunInput.addEventListener('input', () => {
@@ -567,10 +597,6 @@
       tutorRunInput.value = sanitizedRun;
     }
 
-    if (sanitizedRun.length === 8 && document.activeElement === tutorRunInput) {
-      tutorDvInput.focus();
-      tutorDvInput.select();
-    }
   });
 
   dvInput.addEventListener('input', () => {

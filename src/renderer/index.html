@@ -32,15 +32,23 @@
 
         <section id="module-alumnos" class="module-screen active">
           <form id="registro-form" class="form-grid">
-            <label>RUN<input id="run" type="text" maxlength="8" inputmode="numeric" autocomplete="off" required /></label>
+            <label>RUN<input id="run" type="text" maxlength="9" inputmode="numeric" autocomplete="off" required /></label>
             <label>DV<input id="dv" type="text" maxlength="1" inputmode="text" autocomplete="off" required /></label>
+            <label>Nombre<input id="nombre" type="text" autocomplete="off" readonly /></label>
             <label>
               Carrera
               <select id="carrera">
                 <option value="">Seleccionar carrera</option>
               </select>
             </label>
-            <label>Jornada<input id="jornada" type="text" /></label>
+            <label>
+              Jornada
+              <select id="jornada">
+                <option value="">Seleccionar jornada</option>
+                <option value="Diurno">Diurno</option>
+                <option value="Vespertino">Vespertino</option>
+              </select>
+            </label>
             <label>
               Año ingreso
               <select id="anioIngreso">
@@ -60,7 +68,16 @@
                 <option value="">Seleccionar espacio</option>
               </select>
             </label>
-            <label>Temática<input id="tematica" type="text" /></label>
+            <label>
+              Temática
+              <select id="tematica">
+                <option value="">Seleccionar temática</option>
+                <option value="Química">Química</option>
+                <option value="Física">Física</option>
+                <option value="Matemática">Matemática</option>
+                <option value="Programación">Programación</option>
+              </select>
+            </label>
             <label class="span-2">Observaciones<textarea id="observaciones" rows="2"></textarea></label>
             <div class="button-row span-2">
               <button type="submit" class="primary">Registrar</button>
@@ -80,6 +97,7 @@
                   <th>Hora entrada</th>
                   <th>Hora salida</th>
                   <th>RUN</th>
+                  <th>Nombre</th>
                   <th>Carrera</th>
                   <th>Actividad</th>
                   <th>Estado</th>
@@ -93,7 +111,7 @@
 
         <section id="module-tutores" class="module-screen">
           <form id="tutor-form" class="form-grid">
-            <label>RUN<input id="tutor-run" type="text" maxlength="8" inputmode="numeric" autocomplete="off" required /></label>
+            <label>RUN<input id="tutor-run" type="text" maxlength="9" inputmode="numeric" autocomplete="off" required /></label>
             <label>DV<input id="tutor-dv" type="text" maxlength="1" inputmode="text" autocomplete="off" required /></label>
             <label>Nombre<input id="tutor-nombre" type="text" autocomplete="off" /></label>
             <label>

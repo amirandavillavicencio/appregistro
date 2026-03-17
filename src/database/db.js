@@ -81,6 +81,7 @@ function initDb() {
       fecha TEXT NOT NULL,
       run TEXT NOT NULL,
       dv TEXT NOT NULL,
+      nombre TEXT,
       carrera TEXT,
       jornada TEXT,
       anio_ingreso TEXT,
@@ -120,6 +121,12 @@ function initDb() {
   `);
 
   const attendanceColumns = dbInstance.prepare('PRAGMA table_info(attendance_records)').all();
+  const hasNombreColumn = attendanceColumns.some((column) => column.name === 'nombre');
+
+  if (!hasNombreColumn) {
+    dbInstance.exec('ALTER TABLE attendance_records ADD COLUMN nombre TEXT;');
+  }
+
   const hasEspacioColumn = attendanceColumns.some((column) => column.name === 'espacio');
 
   if (!hasEspacioColumn) {

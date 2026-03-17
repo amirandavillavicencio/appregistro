@@ -9,6 +9,8 @@ const CARRERA_EQUIVALENCIAS = {
   arquitectura: ''
 };
 
+let matrixColumnCache = null;
+
 function normalizeText(value) {
   return String(value || '')
     .normalize('NFD')
@@ -50,6 +52,47 @@ function mapMatrixCohorteToAnioIngreso(cohorte) {
   return /^\d{4}$/.test(year) ? year : '';
 }
 
+function mapJornada(value) {
+  const normalized = normalizeText(value);
+
+  if (!normalized) {
+    return '';
+  }
+
+  if (normalized === 'diurno' || normalized === 'dia') {
+    return 'Diurno';
+  }
+
+  if (normalized === 'vespertino' || normalized === 'tarde' || normalized === 'noche') {
+    return 'Vespertino';
+  }
+
+  return '';
+}
+
+function resolveMatrixColumns() {
+  if (matrixColumnCache) {
+    return matrixColumnCache;
+  }
+
+  const db = getDb();
+  const columns = db.prepare('PRAGMA table_info(matriz_estudiantes)').all();
+  const names = columns.map((column) => column.name);
+
+  const findFirstColumn = (candidates) => candidates.find((candidate) => names.includes(candidate));
+
+  matrixColumnCache = {
+    runColumn: findFirstColumn(['rut', 'run']),
+    dvColumn: findFirstColumn(['dv']),
+    nombreColumn: findFirstColumn(['nombre', 'nombres', 'nombre_completo', 'primer_apellido']),
+    carreraColumn: findFirstColumn(['carrera_ingreso', 'carrera']),
+    cohorteColumn: findFirstColumn(['cohorte', 'anio_ingreso']),
+    campusColumn: findFirstColumn(['emplazamiento', 'campus'])
+  };
+
+  return matrixColumnCache;
+}
+
 async function findOpenRecord(campus, runValue) {
   return get(
     `SELECT * FROM attendance_records
@@ -67,14 +110,15 @@ async function registerAttendance(payload) {
   if (!existingOpen) {
     const result = await run(
       `INSERT INTO attendance_records (
-        campus, fecha, run, dv, carrera, jornada, anio_ingreso, actividad, tematica, espacio, observaciones,
+        campus, fecha, run, dv, nombre, carrera, jornada, anio_ingreso, actividad, tematica, espacio, observaciones,
         hora_entrada, hora_salida, estado, duracion_minutos, created_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, NULL, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, NULL, ?)`,
       [
         payload.campus,
         now.fecha,
         payload.run,
         payload.dv,
+        payload.nombre,
         payload.carrera,
         payload.jornada,
         payload.anioIngreso,
@@ -149,7 +193,7 @@ async function closeOpenRecordById(campus, recordId) {
 async function getLatestTodayRecords(campus) {
   const now = getCurrentDateTimeParts();
   return all(
-    `SELECT id, hora_entrada, hora_salida, run, carrera, actividad, estado
+    `SELECT id, hora_entrada, hora_salida, run, nombre, carrera, actividad, estado
      FROM attendance_records
      WHERE campus = ? AND fecha = ?
      ORDER BY id DESC
@@ -159,14 +203,23 @@ async function getLatestTodayRecords(campus) {
 }
 
 async function getLastProfileByRun(runValue) {
-  return get(
-    `SELECT carrera, jornada, anio_ingreso
+  const profile = await get(
+    `SELECT nombre, carrera, jornada, anio_ingreso
      FROM attendance_records
      WHERE run = ?
      ORDER BY id DESC
      LIMIT 1`,
     [runValue]
   );
+
+  if (!profile) {
+    return null;
+  }
+
+  return {
+    ...profile,
+    jornada: mapJornada(profile.jornada)
+  };
 }
 
 async function getStudentFromMatrixByRun(runValue) {
@@ -179,10 +232,22 @@ async function getStudentFromMatrixByRun(runValue) {
     return null;
   }
 
+  const columns = resolveMatrixColumns();
+
+  if (!columns.runColumn) {
+    return null;
+  }
+
   return get(
-    `SELECT rut, dv, carrera_ingreso, cohorte, emplazamiento
+    `SELECT
+      ${columns.runColumn} AS rut,
+      ${columns.dvColumn || "''"} AS dv,
+      ${columns.nombreColumn || "''"} AS nombre,
+      ${columns.carreraColumn || "''"} AS carrera_ingreso,
+      ${columns.cohorteColumn || 'NULL'} AS cohorte,
+      ${columns.campusColumn || "''"} AS emplazamiento
      FROM matriz_estudiantes
-     WHERE rut = ?
+     WHERE ${columns.runColumn} = ?
      LIMIT 1`,
     [runValue]
   );
@@ -197,6 +262,7 @@ async function getAutocompleteProfileByRun(runValue, allowedCarreras = []) {
       profile: {
         run: String(matrixStudent.rut || ''),
         dv: String(matrixStudent.dv || '').toUpperCase(),
+        nombre: String(matrixStudent.nombre || '').trim(),
         carrera: mapMatrixCarrera(matrixStudent.carrera_ingreso, allowedCarreras),
         jornada: '',
         anio_ingreso: mapMatrixCohorteToAnioIngreso(matrixStudent.cohorte),
@@ -217,7 +283,7 @@ async function getAutocompleteProfileByRun(runValue, allowedCarreras = []) {
 async function getTodayCampusRecords(campus) {
   const now = getCurrentDateTimeParts();
   return all(
-    `SELECT campus, fecha, run, dv, carrera, jornada, anio_ingreso, actividad, tematica, espacio, observaciones,
+    `SELECT campus, fecha, run, dv, nombre, carrera, jornada, anio_ingreso, actividad, tematica, espacio, observaciones,
             hora_entrada, hora_salida, estado, duracion_minutos, created_at
      FROM attendance_records
      WHERE campus = ? AND fecha = ?
@@ -228,7 +294,7 @@ async function getTodayCampusRecords(campus) {
 
 async function getHistoricRecords() {
   return all(
-    `SELECT id, campus, fecha, run, dv, carrera, jornada, anio_ingreso, actividad, tematica, espacio, observaciones,
+    `SELECT id, campus, fecha, run, dv, nombre, carrera, jornada, anio_ingreso, actividad, tematica, espacio, observaciones,
             hora_entrada, hora_salida, estado, duracion_minutos, created_at
      FROM attendance_records
      ORDER BY fecha ASC, hora_entrada ASC, id ASC`

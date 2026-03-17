@@ -34,13 +34,21 @@
           <form id="registro-form" class="form-grid">
             <label>RUN<input id="run" type="text" maxlength="8" inputmode="numeric" autocomplete="off" required /></label>
             <label>DV<input id="dv" type="text" maxlength="1" inputmode="text" autocomplete="off" required /></label>
+            <label>Nombre<input id="nombre" type="text" readonly /></label>
             <label>
               Carrera
               <select id="carrera">
                 <option value="">Seleccionar carrera</option>
               </select>
             </label>
-            <label>Jornada<input id="jornada" type="text" /></label>
+            <label>
+              Jornada
+              <select id="jornada">
+                <option value="">Seleccionar jornada</option>
+                <option value="Diurno">Diurno</option>
+                <option value="Vespertino">Vespertino</option>
+              </select>
+            </label>
             <label>
               Año ingreso
               <select id="anioIngreso">
@@ -80,6 +88,7 @@
                   <th>Hora entrada</th>
                   <th>Hora salida</th>
                   <th>RUN</th>
+                  <th>Nombre</th>
                   <th>Carrera</th>
                   <th>Actividad</th>
                   <th>Estado</th>

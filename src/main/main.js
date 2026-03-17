@@ -156,18 +156,19 @@ ipcMain.handle('scanner:parse', async (_event, rawInput) => parseScannedInput(ra
 ipcMain.handle('attendance:export-historic', async () => {
   try {
     const records = await getHistoricRecords();
-    const output = exportToExcel({ records });
+    const outputDir = app.getPath('documents');
+    const output = exportToExcel({ records, outputDir });
 
     return {
       ok: true,
-      message: `Archivo Excel histórico exportado: ${output.filename}`,
+      message: `Archivo Excel histórico exportado en: ${output.outputPath}`,
       ...output
     };
   } catch (error) {
     console.error('[Export] Error exportando Excel:', error);
     return {
       ok: false,
-      message: 'No fue posible exportar el archivo Excel. Intente nuevamente.'
+      message: `No fue posible exportar el archivo Excel: ${error.message}`
     };
   }
 });

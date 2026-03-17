@@ -227,9 +227,49 @@ async function getTodayCampusRecords(campus) {
 }
 
 async function getHistoricRecords() {
+  const db = getDb();
+  const tableColumns = db.prepare('PRAGMA table_info(attendance_records)').all();
+  const availableColumns = new Set(tableColumns.map((column) => column.name));
+
+  const resolveColumn = (columnName, fallback = "''") => (
+    availableColumns.has(columnName) ? columnName : fallback
+  );
+
+  const resolveEspacioColumn = () => {
+    if (availableColumns.has('espacio')) {
+      return 'espacio';
+    }
+
+    if (availableColumns.has('ubicacion')) {
+      return 'ubicacion';
+    }
+
+    if (availableColumns.has('lugar')) {
+      return 'lugar';
+    }
+
+    return "''";
+  };
+
   return all(
-    `SELECT id, campus, fecha, run, dv, carrera, jornada, anio_ingreso, actividad, tematica, espacio, observaciones,
-            hora_entrada, hora_salida, estado, duracion_minutos, created_at
+    `SELECT id,
+            ${resolveColumn('campus')} AS campus,
+            ${resolveColumn('fecha')} AS fecha,
+            ${resolveColumn('run')} AS run,
+            ${resolveColumn('dv')} AS dv,
+            ${resolveColumn('nombre')} AS nombre,
+            ${resolveColumn('carrera')} AS carrera,
+            ${resolveColumn('jornada')} AS jornada,
+            ${resolveColumn('anio_ingreso')} AS anio_ingreso,
+            ${resolveColumn('actividad')} AS actividad,
+            ${resolveColumn('tematica')} AS tematica,
+            ${resolveEspacioColumn()} AS espacio,
+            ${resolveColumn('observaciones')} AS observaciones,
+            ${resolveColumn('hora_entrada')} AS hora_entrada,
+            ${resolveColumn('hora_salida')} AS hora_salida,
+            ${resolveColumn('estado')} AS estado,
+            ${resolveColumn('duracion_minutos')} AS duracion_minutos,
+            ${resolveColumn('created_at')} AS created_at
      FROM attendance_records
      ORDER BY fecha ASC, hora_entrada ASC, id ASC`
   );

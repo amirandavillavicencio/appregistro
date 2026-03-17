@@ -361,8 +361,12 @@
   });
 
   document.getElementById('btn-exportar').addEventListener('click', async () => {
-    const response = await window.ciacApi.exportHistoricExcel();
-    setFeedback(response.message, response.ok ? 'success' : 'error');
+    try {
+      const response = await window.ciacApi.exportHistoricExcel();
+      setFeedback(response.message, response.ok ? 'success' : 'error');
+    } catch (error) {
+      setFeedback(`No fue posible exportar el archivo Excel: ${error.message}`, 'error');
+    }
   });
 
   document.getElementById('btn-informe').addEventListener('click', async () => {

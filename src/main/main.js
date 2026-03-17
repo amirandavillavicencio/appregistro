@@ -52,6 +52,8 @@ const CARRERAS_SAN_JOAQUIN = [
   'Técnico Universitario en Prevención de Riesgos'
 ];
 
+const JORNADAS_PERMITIDAS = ['Diurno', 'Vespertino'];
+
 const ACTIVIDADES_PERMITIDAS = [
   'Estudio Personal',
   'Consultas',
@@ -135,7 +137,8 @@ ipcMain.handle('attendance:register', async (_event, payload) => {
     run: validation.run,
     dv: validation.dv,
     carrera: normalizeSelectValue(payload.carrera, CARRERAS_SAN_JOAQUIN),
-    jornada: payload.jornada || '',
+    nombre: payload.nombre || '',
+    jornada: normalizeSelectValue(payload.jornada, JORNADAS_PERMITIDAS),
     anioIngreso: normalizeSelectValue(payload.anioIngreso, aniosIngresoPermitidos),
     actividad: normalizeSelectValue(payload.actividad, ACTIVIDADES_PERMITIDAS),
     tematica: payload.tematica || '',

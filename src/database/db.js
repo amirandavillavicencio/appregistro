@@ -121,9 +121,14 @@ function initDb() {
 
   const attendanceColumns = dbInstance.prepare('PRAGMA table_info(attendance_records)').all();
   const hasEspacioColumn = attendanceColumns.some((column) => column.name === 'espacio');
+  const hasNombreColumn = attendanceColumns.some((column) => column.name === 'nombre');
 
   if (!hasEspacioColumn) {
     dbInstance.exec('ALTER TABLE attendance_records ADD COLUMN espacio TEXT;');
+  }
+
+  if (!hasNombreColumn) {
+    dbInstance.exec('ALTER TABLE attendance_records ADD COLUMN nombre TEXT;');
   }
 
   importMatrixIfMissing(dbInstance);

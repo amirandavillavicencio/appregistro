@@ -65,6 +65,7 @@
   const form = document.getElementById('registro-form');
   const runInput = document.getElementById('run');
   const dvInput = document.getElementById('dv');
+  const nombreInput = document.getElementById('nombre');
   const carreraInput = document.getElementById('carrera');
   const jornadaInput = document.getElementById('jornada');
   const anioIngresoInput = document.getElementById('anioIngreso');
@@ -141,6 +142,25 @@
     return String(rawValue || '').toUpperCase().replace(/[^0-9K]/g, '').slice(0, 1);
   }
 
+
+  function normalizeJornadaValue(rawValue) {
+    const value = String(rawValue || '').trim().toLowerCase();
+
+    if (!value) {
+      return '';
+    }
+
+    if (value.startsWith('diurn')) {
+      return 'Diurno';
+    }
+
+    if (value.startsWith('vespert')) {
+      return 'Vespertino';
+    }
+
+    return '';
+  }
+
   function getSemestreEstimado(cohorteValue) {
     const cohorte = Number(String(cohorteValue || '').replace(/[^0-9]/g, '').slice(0, 4));
     const currentYear = new Date().getFullYear();
@@ -193,6 +213,10 @@
       runInput.value = '';
       dvInput.value = '';
     }
+    nombreInput.value = '';
+    carreraInput.value = '';
+    jornadaInput.value = '';
+    anioIngresoInput.value = '';
     actividadInput.value = '';
     espacioInput.value = '';
     tematicaInput.value = '';
@@ -268,6 +292,7 @@
         <td>${rowCell(record.hora_entrada)}</td>
         <td>${rowCell(record.hora_salida)}</td>
         <td>${rowCell(record.run)}</td>
+        <td>${rowCell(record.nombre)}</td>
         <td>${rowCell(record.carrera)}</td>
         <td>${rowCell(record.actividad)}</td>
         <td>${rowCell(record.estado)}</td>
@@ -381,6 +406,10 @@
 
     const response = await window.ciacApi.getProfileByRun(runValue);
     if (!response.profile) {
+      nombreInput.value = '';
+      carreraInput.value = '';
+      jornadaInput.value = '';
+      anioIngresoInput.value = '';
       setSemestreEstimado('');
       return;
     }
@@ -389,8 +418,9 @@
       dvInput.value = sanitizeDvInputValue(response.profile.dv);
     }
 
+    nombreInput.value = response.profile.nombre || '';
     setSelectValue(carreraInput, response.profile.carrera);
-    jornadaInput.value = response.profile.jornada || '';
+    setSelectValue(jornadaInput, normalizeJornadaValue(response.profile.jornada));
     setSelectValue(anioIngresoInput, response.profile.anio_ingreso);
     setSemestreEstimado(response.profile.cohorte);
   }
@@ -421,6 +451,7 @@
       campus: state.campus,
       run: runInput.value,
       dv: dvInput.value,
+      nombre: nombreInput.value,
       carrera: carreraInput.value,
       jornada: jornadaInput.value,
       anioIngreso: anioIngresoInput.value,

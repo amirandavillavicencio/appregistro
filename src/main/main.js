@@ -59,6 +59,9 @@ const ACTIVIDADES_PERMITIDAS = [
   'Psicoeducativo Individual'
 ];
 
+const JORNADAS_PERMITIDAS = ['Diurno', 'Vespertino'];
+const TEMATICAS_PERMITIDAS = ['Química', 'Física', 'Matemática', 'Programación'];
+
 const TIPOS_TUTOR_PERMITIDOS = [
   'Tutor de Consultas',
   'Tutor de Reforzamiento',
@@ -134,11 +137,12 @@ ipcMain.handle('attendance:register', async (_event, payload) => {
     campus: payload.campus,
     run: validation.run,
     dv: validation.dv,
+    nombre: payload.nombre || '',
     carrera: normalizeSelectValue(payload.carrera, CARRERAS_SAN_JOAQUIN),
-    jornada: payload.jornada || '',
+    jornada: normalizeSelectValue(payload.jornada, JORNADAS_PERMITIDAS),
     anioIngreso: normalizeSelectValue(payload.anioIngreso, aniosIngresoPermitidos),
     actividad: normalizeSelectValue(payload.actividad, ACTIVIDADES_PERMITIDAS),
-    tematica: payload.tematica || '',
+    tematica: normalizeSelectValue(payload.tematica, TEMATICAS_PERMITIDAS),
     espacio: normalizeSelectValue(payload.espacio, espaciosPermitidos),
     observaciones: payload.observaciones || ''
   });

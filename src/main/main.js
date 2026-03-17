@@ -68,6 +68,31 @@ const TIPOS_TUTOR_PERMITIDOS = [
   'Otro'
 ];
 
+
+const JORNADAS_PERMITIDAS = ['Diurno', 'Vespertino'];
+
+function normalizeJornada(value) {
+  const normalized = String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+
+  if (!normalized) {
+    return '';
+  }
+
+  if (normalized.startsWith('diurn')) {
+    return 'Diurno';
+  }
+
+  if (normalized.startsWith('vespertin')) {
+    return 'Vespertino';
+  }
+
+  return '';
+}
+
 const ESPACIOS_POR_CAMPUS = {
   'Campus Vitacura': ['Espacio Común CIAC'],
   'Campus San Joaquín': ['Sala 1', 'Sala 2', 'Sala 3', 'Sala 4', 'Sala 5', 'Sala 6', 'Espacio Común CIAC']
@@ -134,8 +159,9 @@ ipcMain.handle('attendance:register', async (_event, payload) => {
     campus: payload.campus,
     run: validation.run,
     dv: validation.dv,
+    nombre: String(payload.nombre || '').trim(),
     carrera: normalizeSelectValue(payload.carrera, CARRERAS_SAN_JOAQUIN),
-    jornada: payload.jornada || '',
+    jornada: normalizeSelectValue(normalizeJornada(payload.jornada), JORNADAS_PERMITIDAS),
     anioIngreso: normalizeSelectValue(payload.anioIngreso, aniosIngresoPermitidos),
     actividad: normalizeSelectValue(payload.actividad, ACTIVIDADES_PERMITIDAS),
     tematica: payload.tematica || '',

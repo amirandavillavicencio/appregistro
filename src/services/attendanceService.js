@@ -50,6 +50,47 @@ function mapMatrixCohorteToAnioIngreso(cohorte) {
   return /^\d{4}$/.test(year) ? year : '';
 }
 
+function mapJornadaValue(rawJornada) {
+  const normalized = normalizeText(rawJornada);
+
+  if (!normalized) {
+    return '';
+  }
+
+  if (normalized.startsWith('diurn')) {
+    return 'Diurno';
+  }
+
+  if (normalized.startsWith('vespertin')) {
+    return 'Vespertino';
+  }
+
+  return '';
+}
+
+function pickMatrixNombre(studentRow) {
+  if (!studentRow) {
+    return '';
+  }
+
+  const candidateKeys = [
+    'nombre',
+    'nombres',
+    'nombre_completo',
+    'primer_apellido',
+    'apellido_paterno'
+  ];
+
+  for (const key of candidateKeys) {
+    const value = studentRow[key];
+    if (value !== null && value !== undefined && String(value).trim()) {
+      return String(value).trim();
+    }
+  }
+
+  return '';
+}
+
 async function findOpenRecord(campus, runValue) {
   return get(
     `SELECT * FROM attendance_records
@@ -67,7 +108,7 @@ async function registerAttendance(payload) {
   if (!existingOpen) {
     const result = await run(
       `INSERT INTO attendance_records (
-        campus, fecha, run, dv, carrera, jornada, anio_ingreso, actividad, tematica, espacio, observaciones,
+        campus, fecha, run, dv, nombre, carrera, jornada, anio_ingreso, actividad, tematica, espacio, observaciones,
         hora_entrada, hora_salida, estado, duracion_minutos, created_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, NULL, ?)`,
       [
@@ -75,6 +116,7 @@ async function registerAttendance(payload) {
         now.fecha,
         payload.run,
         payload.dv,
+        payload.nombre,
         payload.carrera,
         payload.jornada,
         payload.anioIngreso,
@@ -149,7 +191,7 @@ async function closeOpenRecordById(campus, recordId) {
 async function getLatestTodayRecords(campus) {
   const now = getCurrentDateTimeParts();
   return all(
-    `SELECT id, hora_entrada, hora_salida, run, carrera, actividad, estado
+    `SELECT id, hora_entrada, hora_salida, run, nombre, carrera, actividad, estado
      FROM attendance_records
      WHERE campus = ? AND fecha = ?
      ORDER BY id DESC
@@ -160,7 +202,7 @@ async function getLatestTodayRecords(campus) {
 
 async function getLastProfileByRun(runValue) {
   return get(
-    `SELECT carrera, jornada, anio_ingreso
+    `SELECT nombre, carrera, jornada, anio_ingreso
      FROM attendance_records
      WHERE run = ?
      ORDER BY id DESC
@@ -179,8 +221,24 @@ async function getStudentFromMatrixByRun(runValue) {
     return null;
   }
 
+  const matrixColumns = all('PRAGMA table_info(matriz_estudiantes)');
+  const columnNames = new Set(matrixColumns.map((column) => column.name));
+
+  const selectedColumns = [
+    'rut',
+    'dv',
+    'carrera_ingreso',
+    'cohorte',
+    'emplazamiento'
+  ];
+
+  if (columnNames.has('nombre')) selectedColumns.push('nombre');
+  if (columnNames.has('nombres')) selectedColumns.push('nombres');
+  if (columnNames.has('nombre_completo')) selectedColumns.push('nombre_completo');
+  if (columnNames.has('primer_apellido')) selectedColumns.push('primer_apellido');
+
   return get(
-    `SELECT rut, dv, carrera_ingreso, cohorte, emplazamiento
+    `SELECT ${selectedColumns.join(', ')}
      FROM matriz_estudiantes
      WHERE rut = ?
      LIMIT 1`,
@@ -197,6 +255,7 @@ async function getAutocompleteProfileByRun(runValue, allowedCarreras = []) {
       profile: {
         run: String(matrixStudent.rut || ''),
         dv: String(matrixStudent.dv || '').toUpperCase(),
+        nombre: pickMatrixNombre(matrixStudent),
         carrera: mapMatrixCarrera(matrixStudent.carrera_ingreso, allowedCarreras),
         jornada: '',
         anio_ingreso: mapMatrixCohorteToAnioIngreso(matrixStudent.cohorte),
@@ -211,13 +270,16 @@ async function getAutocompleteProfileByRun(runValue, allowedCarreras = []) {
   return {
     source: 'attendance_records',
     profile: fallbackProfile
+      ? { ...fallbackProfile, jornada: mapJornadaValue(fallbackProfile.jornada) }
+      : null
   };
 }
+
 
 async function getTodayCampusRecords(campus) {
   const now = getCurrentDateTimeParts();
   return all(
-    `SELECT campus, fecha, run, dv, carrera, jornada, anio_ingreso, actividad, tematica, espacio, observaciones,
+    `SELECT campus, fecha, run, dv, nombre, carrera, jornada, anio_ingreso, actividad, tematica, espacio, observaciones,
             hora_entrada, hora_salida, estado, duracion_minutos, created_at
      FROM attendance_records
      WHERE campus = ? AND fecha = ?
@@ -228,7 +290,7 @@ async function getTodayCampusRecords(campus) {
 
 async function getHistoricRecords() {
   return all(
-    `SELECT id, campus, fecha, run, dv, carrera, jornada, anio_ingreso, actividad, tematica, espacio, observaciones,
+    `SELECT id, campus, fecha, run, dv, nombre, carrera, jornada, anio_ingreso, actividad, tematica, espacio, observaciones,
             hora_entrada, hora_salida, estado, duracion_minutos, created_at
      FROM attendance_records
      ORDER BY fecha ASC, hora_entrada ASC, id ASC`

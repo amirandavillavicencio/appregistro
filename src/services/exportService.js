@@ -8,6 +8,7 @@ function mapRecordToExcelRow(item) {
   const rawRun = String(item.run || '').trim();
   const normalizedDv = String(item.dv || '').trim().toUpperCase();
   const runWithoutDv = rawRun.replace(/\./g, '').replace(/[^0-9]/g, '');
+  const espacioValue = item.espacio ?? item.ubicacion ?? item.lugar ?? '';
 
   return {
     Día: item.fecha || '',
@@ -15,13 +16,14 @@ function mapRecordToExcelRow(item) {
     'Hora Salida': item.hora_salida || '',
     RUN: runWithoutDv,
     'Dígito V': normalizedDv,
+    Nombre: item.nombre || '',
     Carrera: item.carrera || '',
     Sede: item.campus || '',
     'Año Ingreso': item.anio_ingreso || '',
     Jornada: item.jornada || '',
     Actividad: item.actividad || '',
     Temática: item.tematica || '',
-    Espacio: item.espacio || '',
+    Espacio: espacioValue,
     Observaciones: item.observaciones || ''
   };
 }
@@ -51,6 +53,7 @@ function buildMainWorksheet(records = []) {
     'Hora Salida',
     'RUN',
     'Dígito V',
+    'Nombre',
     'Carrera',
     'Sede',
     'Año Ingreso',
@@ -100,13 +103,19 @@ function ensureOutputDir() {
   return outputDir;
 }
 
-function exportToExcel({ records }) {
+function exportToExcel({ records, outputDir }) {
   const workbook = xlsx.utils.book_new();
   const worksheet = buildMainWorksheet(records);
   xlsx.utils.book_append_sheet(workbook, worksheet, 'Histórico CIAC');
 
   const filename = 'registro_ciac_historico.xlsx';
-  const outputPath = path.join(ensureOutputDir(), filename);
+  const targetDir = outputDir || ensureOutputDir();
+
+  if (!fs.existsSync(targetDir)) {
+    fs.mkdirSync(targetDir, { recursive: true });
+  }
+
+  const outputPath = path.join(targetDir, filename);
   xlsx.writeFile(workbook, outputPath);
 
   return {

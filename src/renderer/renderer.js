@@ -66,6 +66,7 @@
   const runInput = document.getElementById('run');
   const dvInput = document.getElementById('dv');
   const carreraInput = document.getElementById('carrera');
+  const nombreInput = document.getElementById('nombre');
   const jornadaInput = document.getElementById('jornada');
   const anioIngresoInput = document.getElementById('anioIngreso');
   const semestreEstimadoInput = document.getElementById('semestreEstimado');
@@ -133,6 +134,29 @@
     selectElement.value = hasOption ? normalizedValue : '';
   }
 
+
+  function normalizeJornadaValue(value) {
+    const normalized = String(value || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
+
+    if (!normalized) {
+      return '';
+    }
+
+    if (normalized.startsWith('diurn')) {
+      return 'Diurno';
+    }
+
+    if (normalized.startsWith('vespertin')) {
+      return 'Vespertino';
+    }
+
+    return '';
+  }
+
   function sanitizeRunInputValue(rawValue) {
     return String(rawValue || '').replace(/[^0-9]/g, '').slice(0, 8);
   }
@@ -193,6 +217,10 @@
       runInput.value = '';
       dvInput.value = '';
     }
+    nombreInput.value = '';
+    jornadaInput.value = '';
+    carreraInput.value = '';
+    anioIngresoInput.value = '';
     actividadInput.value = '';
     espacioInput.value = '';
     tematicaInput.value = '';
@@ -268,6 +296,7 @@
         <td>${rowCell(record.hora_entrada)}</td>
         <td>${rowCell(record.hora_salida)}</td>
         <td>${rowCell(record.run)}</td>
+        <td>${rowCell(record.nombre)}</td>
         <td>${rowCell(record.carrera)}</td>
         <td>${rowCell(record.actividad)}</td>
         <td>${rowCell(record.estado)}</td>
@@ -381,6 +410,10 @@
 
     const response = await window.ciacApi.getProfileByRun(runValue);
     if (!response.profile) {
+      nombreInput.value = '';
+      setSelectValue(carreraInput, '');
+      setSelectValue(jornadaInput, '');
+      setSelectValue(anioIngresoInput, '');
       setSemestreEstimado('');
       return;
     }
@@ -389,8 +422,9 @@
       dvInput.value = sanitizeDvInputValue(response.profile.dv);
     }
 
+    nombreInput.value = response.profile.nombre || '';
     setSelectValue(carreraInput, response.profile.carrera);
-    jornadaInput.value = response.profile.jornada || '';
+    setSelectValue(jornadaInput, normalizeJornadaValue(response.profile.jornada));
     setSelectValue(anioIngresoInput, response.profile.anio_ingreso);
     setSemestreEstimado(response.profile.cohorte);
   }
@@ -421,8 +455,9 @@
       campus: state.campus,
       run: runInput.value,
       dv: dvInput.value,
+      nombre: nombreInput.value,
       carrera: carreraInput.value,
-      jornada: jornadaInput.value,
+      jornada: normalizeJornadaValue(jornadaInput.value),
       anioIngreso: anioIngresoInput.value,
       actividad: actividadInput.value,
       espacio: espacioInput.value,

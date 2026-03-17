@@ -40,7 +40,15 @@
                 <option value="">Seleccionar carrera</option>
               </select>
             </label>
-            <label>Jornada<input id="jornada" type="text" /></label>
+            <label>Nombre<input id="nombre" type="text" readonly /></label>
+            <label>
+              Jornada
+              <select id="jornada">
+                <option value="">Seleccionar jornada</option>
+                <option value="Diurno">Diurno</option>
+                <option value="Vespertino">Vespertino</option>
+              </select>
+            </label>
             <label>
               Año ingreso
               <select id="anioIngreso">
@@ -80,6 +88,7 @@
                   <th>Hora entrada</th>
                   <th>Hora salida</th>
                   <th>RUN</th>
+                  <th>Nombre</th>
                   <th>Carrera</th>
                   <th>Actividad</th>
                   <th>Estado</th>
